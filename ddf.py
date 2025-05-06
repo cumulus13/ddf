@@ -46,6 +46,8 @@ class DDF:
         seen_host_ports = {}
 
         for service, value in content.get('services', {}).items():
+            if not isinstance(value, dict):
+                continue  # skip jika value bukan dict
             ports = value.get('ports', [])
             if all(isinstance(x, str) and ':' in x for x in ports):
                 parsed_ports = []
