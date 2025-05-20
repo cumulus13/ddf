@@ -185,8 +185,8 @@ class DDF:
             console.print(f"[red]Error:[/] {e}")
             sys.exit(1)
 
-        if args.find:
-            DDF.find_port(content, args.find)
+        if args.find or args.service and args.service.isdigit():
+            DDF.find_port(content, args.find or args.service)
         elif args.service and args.detail:
             DDF.show_service_detail(content, args.service)
         elif args.service and args.list:
