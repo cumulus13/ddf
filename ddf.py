@@ -163,6 +163,35 @@ class DDF:
             console.print(f"[black in #FFFF00]No service found with port {port}[/]")
 
     @classmethod
+    def check_duplicate_port(cls, content, port):
+        """
+        Cek apakah port tertentu duplicate di antara semua service.
+        """
+        services = content.get('services', {})
+        found = []
+        for service, value in services.items():
+            if not isinstance(value, dict):
+                continue
+            ports = value.get('ports', [])
+            for p in ports:
+                # Support format host:container or just port
+                parts = p.split(":")
+                # if port in [x.strip() for x in parts]:
+                if port == parts[0].strip():
+                    found.append((service, p))
+        if len(found) > 1:
+            console.print(f"[white on red]Port {port} is DUPLICATE in these services:[/]")
+            for svc, p in found:
+                console.print(f"  - [bold cyan]{svc}[/]: [yellow]{p}[/]")
+        elif len(found) == 1:
+            svc, p = found[0]
+            console.print(f"[bold #00FFFF]Port {port} only found in service:[/] [bold #FFAA00]{svc}[/] ([yellow]{p}[/])")
+        else:
+            console.print(f"[bold #FFFF00]Port {port} not found in any service.[/]")
+        
+        return found
+            
+    @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
 
@@ -172,6 +201,7 @@ class DDF:
         parser.add_argument('-l', '--list', action='store_true', help="List ports for the given service")
         parser.add_argument('-d', '--detail', action='store_true', help="Show full configuration for the given service")
         parser.add_argument('-f', '--find', metavar='PORT', help="Find port in all services", type=str)
+        parser.add_argument('-p', '--port', metavar='PORT', help="Check if PORT is duplicate among all services", type=str)
 
         args = parser.parse_args()
 
@@ -185,7 +215,9 @@ class DDF:
             console.print(f"[red]Error:[/] {e}")
             sys.exit(1)
 
-        if args.find or args.service and args.service.isdigit():
+        if args.port:
+            DDF.check_duplicate_port(content, args.port)
+        elif args.find or (args.service and args.service.isdigit()):
             DDF.find_port(content, args.find or args.service)
         elif args.service and args.detail:
             DDF.show_service_detail(content, args.service)
