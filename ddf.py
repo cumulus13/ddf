@@ -11,6 +11,7 @@ from configset import configset
 from rich_argparse import RichHelpFormatter, _lazy_rich as rr
 from typing import ClassVar
 from typing import List
+import fnmatch
 
 console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
@@ -64,16 +65,21 @@ class DDF:
     @classmethod
     def show_service_detail(cls, content, service):
         services = content.get('services', {})
-        service_val = services.get(service)
-        if service_val is None:
-            console.print(f"[yellow]Service '{service}' not found.[/]")
+        # Support the pattern/wildcard and substring
+        matched = [
+            svc for svc in services
+            if fnmatch.fnmatch(svc, service) or service in svc
+        ]
+        if not matched:
+            console.print(f"[yellow]Service pattern '{service}' not found.[/]")
             return
-        console.print(f"[bold cyan]Configuration for service '{service}':[/]")
-        
-        yaml_str = yaml.dump(service_val, sort_keys=False, allow_unicode=True)
-        syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
-        console.print(syntax)
-
+        for svc in matched:
+            service_val = services.get(svc)
+            console.print(f"[bold cyan]Configuration for service '{svc}':[/]")
+            yaml_str = yaml.dump(service_val, sort_keys=False, allow_unicode=True)
+            syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
+            console.print(syntax)
+            
     @classmethod
     def list_service_ports(cls, content, service):
         services = content.get('services', {})
@@ -192,6 +198,29 @@ class DDF:
         return found
             
     @classmethod
+    def list_service_devices(cls, content, service=None):
+        services = content.get('services', {})
+        found = False
+        for svc, value in services.items():
+            # Dukung pattern/wildcard dan substring
+            if service and not (fnmatch.fnmatch(svc, service) or service in svc):
+                continue
+            if not isinstance(value, dict):
+                continue
+            devices = value.get('devices', [])
+            if devices:
+                found = True
+                console.print(f"[bold cyan]{svc}:[/]")
+                console.print("  devices:")
+                for dev in devices:
+                    console.print(f"    - {dev}")
+        if not found:
+            if service:
+                console.print(f"[yellow]No devices found for service pattern:[/] {service}")
+            else:
+                console.print(f"[yellow]No devices found in any service.[/]")
+    
+    @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
 
@@ -202,6 +231,7 @@ class DDF:
         parser.add_argument('-d', '--detail', action='store_true', help="Show full configuration for the given service")
         parser.add_argument('-f', '--find', metavar='PORT', help="Find port in all services", type=str)
         parser.add_argument('-p', '--port', metavar='PORT', help="Check if PORT is duplicate among all services", type=str)
+        parser.add_argument('-D', '--device', action='store_true', help="Show devices for the given service or all services")
 
         args = parser.parse_args()
 
@@ -215,7 +245,9 @@ class DDF:
             console.print(f"[red]Error:[/] {e}")
             sys.exit(1)
 
-        if args.port:
+        if args.device:
+            DDF.list_service_devices(content, args.service)
+        elif args.port:
             DDF.check_duplicate_port(content, args.port)
         elif args.find or (args.service and args.service.isdigit()):
             DDF.find_port(content, args.find or args.service)
