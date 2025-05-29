@@ -9,9 +9,12 @@ from pydebugger.debug import debug
 import hashlib
 from configset import configset
 from rich_argparse import RichHelpFormatter, _lazy_rich as rr
+from rich.syntax import Syntax
 from typing import ClassVar
 from typing import List
 import fnmatch
+from pathlib import Path
+
 
 console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
@@ -231,6 +234,51 @@ class DDF:
             console.print(f"  - [bold #00FFFF]{service}[/]")
     
     @classmethod
+    def get_dockerfile(cls, service_name):
+        """
+        Get the Dockerfile path for a given service name.
+        """
+        root_path = CONFIG.get_config('docker-compose', 'root_path') if CONFIG.get_config('docker-compose', 'root_path') and os.path.isdir(CONFIG.get_config('docker-compose', 'root_path')) else r"c:\PROJECTS" if os.path.isdir(r"c:\PROJECTS") else os.getcwd()
+        content = cls.open_file(CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml")
+        services = content.get('services', {})
+        service_val = services.get(service_name)
+        if not service_val:
+            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            return None
+        dockerfile = service_val.get('build', {}).get('dockerfile')
+        build_path = service_val.get('build', {}).get('context', '.')
+        debug(build_path = build_path)
+        if not dockerfile:
+            console.print(f"[yellow]No Dockerfile specified for service '{service_name}'.[/]")
+            return None
+        return str(Path(root_path) / build_path / dockerfile)
+    
+    @classmethod
+    def read_dockerfile(cls, path = None, service_name = None):
+        """
+        Read the Dockerfile content from the given path with color syntax by rich.Syntax.
+        """
+        path = cls.get_dockerfile(service_name) if service_name else path
+        if not path:
+            console.print("[white on red]No Dockerfile path provided or found.[/]")
+            return None
+        content = None
+        if not os.path.isfile(path):
+            console.print(f"[white on red]Dockerfile not found:[/] {path}")
+            return None
+        try:
+            with open(path, 'r') as f:
+                content = f.read()
+            if not content:
+                console.print(f"[yellow]Dockerfile is empty:[/] {path}")
+                return None
+            syntax = Syntax(content, "dockerfile", theme="fruity", line_numbers=True)
+            console.print(f"\n[bold cyan]Dockerfile for service[/] [black on #FFFF00]'{service_name}[/]':\n" if service_name else "[bold cyan]Dockerfile content:[/]\n")
+            console.print(syntax)
+        except Exception as e:
+            console.print(f"[red]Error reading Dockerfile:[/] {e}")
+            return None
+    @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
 
@@ -243,7 +291,9 @@ class DDF:
         parser.add_argument('-p', '--port', metavar='PORT', help="Check if PORT is duplicate among all services", type=str)
         parser.add_argument('-D', '--device', action='store_true', help="Show devices for the given service or all services")
         parser.add_argument('-L', '--list-service-name', action='store_true', help="List all service names in the YAML file")
-
+        # parser.add_argument('-r', '--dockerfile', metavar='SERVICE', help="Read and display the Dockerfile for the given service")
+        parser.add_argument('-r', '--dockerfile', action = 'store_true', help="Read and display the Dockerfile for the given service")
+        
         args = parser.parse_args()
 
         if not os.path.isfile(args.file):
@@ -266,6 +316,8 @@ class DDF:
             DDF.show_service_detail(content, args.service)
         elif args.service and args.list:
             DDF.list_service_ports(content, args.service)
+        elif args.service and args.dockerfile:
+            DDF.read_dockerfile(service_name=args.service)
         elif args.list_service_name:
             DDF.list_service_names(content)
         else:
