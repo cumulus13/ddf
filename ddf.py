@@ -221,6 +221,16 @@ class DDF:
                 console.print(f"[yellow]No devices found in any service.[/]")
     
     @classmethod
+    def list_service_names(cls, content):
+        services = content.get('services', {})
+        if not services:
+            console.print("[yellow]No services found in the YAML file.[/]")
+            return
+        console.print("[bold cyan]Available service names:[/]")
+        for service in services.keys():
+            console.print(f"  - [bold #00FFFF]{service}[/]")
+    
+    @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
 
@@ -232,6 +242,7 @@ class DDF:
         parser.add_argument('-f', '--find', metavar='PORT', help="Find port in all services", type=str)
         parser.add_argument('-p', '--port', metavar='PORT', help="Check if PORT is duplicate among all services", type=str)
         parser.add_argument('-D', '--device', action='store_true', help="Show devices for the given service or all services")
+        parser.add_argument('-L', '--list-service-name', action='store_true', help="List all service names in the YAML file")
 
         args = parser.parse_args()
 
@@ -255,6 +266,8 @@ class DDF:
             DDF.show_service_detail(content, args.service)
         elif args.service and args.list:
             DDF.list_service_ports(content, args.service)
+        elif args.list_service_name:
+            DDF.list_service_names(content)
         else:
             DDF.find_duplicate_port(content, target_service=args.service)
 
