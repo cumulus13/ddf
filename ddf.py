@@ -13,8 +13,9 @@ from rich.syntax import Syntax
 from typing import ClassVar
 from typing import List
 import fnmatch
+import subprocess
 from pathlib import Path
-
+import shutil
 
 console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
@@ -278,6 +279,31 @@ class DDF:
         except Exception as e:
             console.print(f"[red]Error reading Dockerfile:[/] {e}")
             return None
+    
+    @classmethod
+    def edit_dockerfile(cls, path = None, service_name = None):
+        """
+        Edit the Dockerfile using nvim if exist, if not then nano if exists, if not then vim. use subprocess.run() and check beforehand if the editor is installed.
+        """
+        path = cls.get_dockerfile(service_name) if service_name else path
+        if not path:
+            console.print("[white on red]No Dockerfile path provided or found.[/]")
+            return None
+        if not os.path.isfile(path):
+            console.print(f"[white on red]Dockerfile not found:[/] {path}")
+            return None
+        
+        editors = ['nvim', 'nano', 'vim']
+        for editor in editors:
+            if shutil.which(editor):
+                try:
+                    subprocess.run([editor, path], check=True)
+                    return
+                except subprocess.CalledProcessError as e:
+                    console.print(f"[red]Error launching {editor}:[/] {e}")
+                    continue
+        console.print("[white on red]No suitable editor found to edit the Dockerfile.[/]")
+        
     @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
@@ -293,6 +319,7 @@ class DDF:
         parser.add_argument('-L', '--list-service-name', action='store_true', help="List all service names in the YAML file")
         # parser.add_argument('-r', '--dockerfile', metavar='SERVICE', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-r', '--dockerfile', action = 'store_true', help="Read and display the Dockerfile for the given service")
+        parser.add_argument('-e', '--edit-dockerfile', action='store_true', help="Edit the Dockerfile for the given service using nvim, nano, or vim")
         
         args = parser.parse_args()
 
@@ -318,6 +345,8 @@ class DDF:
             DDF.list_service_ports(content, args.service)
         elif args.service and args.dockerfile:
             DDF.read_dockerfile(service_name=args.service)
+        elif args.service and args.edit_dockerfile:
+            DDF.edit_dockerfile(service_name=args.service)
         elif args.list_service_name:
             DDF.list_service_names(content)
         else:
