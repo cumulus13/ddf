@@ -293,7 +293,7 @@ class DDF:
             console.print(f"[white on red]Dockerfile not found:[/] {path}")
             return None
         
-        editors = ['nvim', 'nano', 'vim']
+        editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
         for editor in editors:
             if shutil.which(editor):
                 try:
@@ -304,6 +304,115 @@ class DDF:
                     continue
         console.print("[white on red]No suitable editor found to edit the Dockerfile.[/]")
         
+    @classmethod
+    def edit_service(cls, file_path=None, service_name=None):
+        """
+        Edit a service section in the YAML file using nvim, nano, or vim.
+        Only the selected service section will be edited and replaced back.
+        """
+        import tempfile
+
+        file_path = file_path or CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not service_name:
+            console.print("[white on red]No service name provided for editing.[/]")
+            return
+
+        if not os.path.isfile(file_path):
+            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            return
+
+        # Load YAML
+        try:
+            with open(file_path, 'r') as f:
+                content = yaml.safe_load(f)
+        except Exception as e:
+            console.print(f"[red]Error loading YAML:[/] {e}")
+            return
+
+        services = content.get('services', {})
+        # Cari service yang cocok (pattern/wildcard/substring)
+        matched = [svc for svc in services if fnmatch.fnmatch(svc, service_name) or service_name in svc]
+        if not matched:
+            console.print(f"[yellow]Service pattern '{service_name}' not found.[/]")
+            return
+
+        for svc in matched:
+            svc_data = services[svc]
+            # Simpan section ke file sementara
+            with tempfile.NamedTemporaryFile('w+', delete=False, suffix='.yml') as tf:
+                temp_path = tf.name
+                yaml.dump({svc: svc_data}, tf, sort_keys=False, allow_unicode=True)
+            # Pilih editor
+            editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
+            for editor in editors:
+                if shutil.which(editor):
+                    try:
+                        subprocess.run([editor, temp_path], check=True)
+                        break
+                    except subprocess.CalledProcessError as e:
+                        console.print(f"[red]Error launching {editor}:[/] {e}")
+                        continue
+            else:
+                console.print("[white on red]No suitable editor found to edit the service section.[/]")
+                os.unlink(temp_path)
+                return
+            # Setelah diedit, baca kembali dan replace section
+            try:
+                with open(temp_path, 'r') as tf:
+                    edited = yaml.safe_load(tf)
+                if not edited or svc not in edited:
+                    console.print(f"[red]No valid service section found after editing. Skipped update for '{svc}'.[/]")
+                    os.unlink(temp_path)
+                    continue
+                content['services'][svc] = edited[svc]
+                os.unlink(temp_path)
+            except Exception as e:
+                console.print(f"[red]Error reading edited service section:[/] {e}")
+                os.unlink(temp_path)
+                continue
+
+        # Simpan kembali ke file asli
+        try:
+            with open(file_path, 'w') as f:
+                yaml.dump(content, f, sort_keys=False, allow_unicode=True)
+            console.print(f"[bold green]Service section(s) updated successfully in {file_path}[/bold green]")
+        except Exception as e:
+            console.print(f"[red]Error writing YAML file:[/] {e}")
+        
+    @classmethod
+    def duplicate_server(cls, service_name, new_service_name):
+        """
+        Duplicate a service section in the YAML file.
+        The new service will have the same configuration as the original service.
+        """
+        file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not os.path.isfile(file_path):
+            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            return
+
+        try:
+            content = cls.open_file(file_path)
+        except Exception as e:
+            console.print(f"[red]Error loading YAML:[/] {e}")
+            return
+
+        services = content.get('services', {})
+        if service_name not in services:
+            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            return
+
+        # Duplicate the service
+        services[new_service_name] = services[service_name]
+        content['services'] = services
+
+        # Save back to the file
+        try:
+            with open(file_path, 'w') as f:
+                yaml.dump(content, f, sort_keys=False, allow_unicode=True)
+            console.print(f"[bold green]Service '{service_name}' duplicated to '{new_service_name}' successfully in {file_path}[/bold green]")
+        except Exception as e:
+            console.print(f"[red]Error writing YAML file:[/] {e}")
+    
     @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
@@ -320,6 +429,8 @@ class DDF:
         # parser.add_argument('-r', '--dockerfile', metavar='SERVICE', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-r', '--dockerfile', action = 'store_true', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-e', '--edit-dockerfile', action='store_true', help="Edit the Dockerfile for the given service using nvim, nano, or vim")
+        parser.add_argument('-E', '--edit-service', action='store_true', help="Edit the service section for the given service")
+        parser.add_argument('-dd', '--duplicate-service', metavar='NEW_SERVICE_NAME', help="Duplicate the service section with a new service name")
         
         args = parser.parse_args()
 
@@ -349,6 +460,13 @@ class DDF:
             DDF.edit_dockerfile(service_name=args.service)
         elif args.list_service_name:
             DDF.list_service_names(content)
+        elif args.service and args.edit_service:
+            DDF.edit_service(file_path=args.file, service_name=args.service)
+        elif args.duplicate_service:
+            if not args.service:
+                console.print("[white on red]No service name provided for duplication.[/]")
+                sys.exit(1)
+            DDF.duplicate_server(args.service, args.duplicate_service)
         else:
             DDF.find_duplicate_port(content, target_service=args.service)
 
