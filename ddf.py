@@ -16,6 +16,8 @@ import fnmatch
 import subprocess
 from pathlib import Path
 import shutil
+import clipboard
+
 
 console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
@@ -225,6 +227,24 @@ class DDF:
                 console.print(f"[yellow]No devices found in any service.[/]")
     
     @classmethod
+    def list_service_ports(cls, content, service):
+        """
+        List all ports for a given service.
+        """
+        services = content.get('services', {})
+        service_val = services.get(service)
+        if not service_val:
+            console.print(f"[yellow]Service '{service}' not found.[/]")
+            return
+        ports = service_val.get('ports', [])
+        if not ports:
+            console.print(f"[yellow]No ports found for service:[/] {service}")
+            return
+        console.print(f"[bold cyan]Ports for service '{service}':[/]")
+        for port in ports:
+            console.print(f"  - [green]{port}[/]")
+    
+    @classmethod
     def list_service_names(cls, content):
         services = content.get('services', {})
         if not services:
@@ -380,6 +400,37 @@ class DDF:
             console.print(f"[red]Error writing YAML file:[/] {e}")
         
     @classmethod
+    def copy_service(cls, service_name):
+        """
+        Copy a service section to the clipboard.
+        The service section will be formatted as YAML and copied.
+        """
+
+        file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not os.path.isfile(file_path):
+            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            return
+
+        try:
+            content = cls.open_file(file_path)
+        except Exception as e:
+            console.print(f"[red]Error loading YAML:[/] {e}")
+            return
+
+        services = content.get('services', {})
+        if service_name not in services:
+            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            return
+
+        # Get the service section
+        service_section = {service_name: services[service_name]}
+        yaml_str = yaml.dump(service_section, sort_keys=False, allow_unicode=True)
+
+        # Copy to clipboard
+        clipboard.copy(yaml_str)
+        console.print(f"[bold green]Service '{service_name}' copied to clipboard successfully.[/]")
+    
+    @classmethod
     def duplicate_server(cls, service_name, new_service_name):
         """
         Duplicate a service section in the YAML file.
@@ -425,12 +476,14 @@ class DDF:
         parser.add_argument('-f', '--find', metavar='PORT', help="Find port in all services", type=str)
         parser.add_argument('-p', '--port', metavar='PORT', help="Check if PORT is duplicate among all services", type=str)
         parser.add_argument('-D', '--device', action='store_true', help="Show devices for the given service or all services")
+        parser.add_argument('-P', '--list-port', action='store_true', help="List all ports in the YAML file")
         parser.add_argument('-L', '--list-service-name', action='store_true', help="List all service names in the YAML file")
         # parser.add_argument('-r', '--dockerfile', metavar='SERVICE', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-r', '--dockerfile', action = 'store_true', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-e', '--edit-dockerfile', action='store_true', help="Edit the Dockerfile for the given service using nvim, nano, or vim")
         parser.add_argument('-E', '--edit-service', action='store_true', help="Edit the service section for the given service")
         parser.add_argument('-dd', '--duplicate-service', metavar='NEW_SERVICE_NAME', help="Duplicate the service section with a new service name")
+        parser.add_argument('-cs', '--copy-service', help = "copy service section to clipboar", action = 'store_true')
         
         args = parser.parse_args()
 
@@ -446,6 +499,12 @@ class DDF:
 
         if args.device:
             DDF.list_service_devices(content, args.service)
+        elif args.list_port:
+            if args.service:
+                DDF.list_service_ports(content, args.service)
+            else:
+                console.print("[white on red]No service specified for listing ports.[/]")
+                sys.exit(1)
         elif args.port:
             DDF.check_duplicate_port(content, args.port)
         elif args.find or (args.service and args.service.isdigit()):
@@ -462,6 +521,11 @@ class DDF:
             DDF.list_service_names(content)
         elif args.service and args.edit_service:
             DDF.edit_service(file_path=args.file, service_name=args.service)
+        elif args.service and args.copy_service:
+            if not args.service:
+                console.print("[white on red]No service name provided for copying.[/]")
+                sys.exit(1)
+            DDF.copy_service(args.service)
         elif args.duplicate_service:
             if not args.service:
                 console.print("[white on red]No service name provided for duplication.[/]")
