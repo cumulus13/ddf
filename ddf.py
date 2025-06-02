@@ -389,7 +389,9 @@ class DDF:
             except Exception as e:
                 console.print(f"[red]Error reading edited service section:[/] {e}")
                 os.unlink(temp_path)
-                continue
+                # Hentikan proses update file utama jika error parsing YAML
+                console.print(f"[bold red]YAML not updated due to error above. Please fix indentation (use spaces, not tabs).[/bold red]")
+                return  # <--- tambahkan return di sini!
 
         # Simpan kembali ke file asli
         try:
