@@ -17,7 +17,8 @@ import subprocess
 from pathlib import Path
 import shutil
 import clipboard
-
+import tempfile
+import shlex
 
 console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
@@ -329,6 +330,139 @@ class DDF:
             return None
     
     @classmethod
+    def read_entrypoint(cls, service_name, read = True):
+        """
+        Read the entrypoint script for a given service.
+        Tries to resolve the entrypoint path by analyzing COPY instructions in the Dockerfile.
+        """
+        dockerfile_path = cls.get_dockerfile(service_name)
+        if not dockerfile_path:
+            console.print(f"[white on red]No Dockerfile found for service '{service_name}'.[/]")
+            return None
+
+        # Get docker-compose.yml path and context dir
+        compose_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        base_dir = os.path.dirname(os.path.abspath(compose_file))
+        content = cls.open_file(compose_file)
+        services = content.get('services', {})
+        service_val = services.get(service_name, {})
+        build_ctx = service_val.get('build', {}).get('context', '.')
+
+        entrypoint = None
+        entrypoint_src = None
+
+        # Parse Dockerfile for ENTRYPOINT and COPY
+        try:
+            with open(dockerfile_path, 'r') as f:
+                lines = f.readlines()
+        except Exception as e:
+            console.print(f"[red]Error reading Dockerfile:[/] {e}")
+            return None
+
+        # Find ENTRYPOINT line
+        for line in lines:
+            line_strip = line.strip()
+            if line_strip.startswith('ENTRYPOINT'):
+                # Support both ENTRYPOINT ["..."] and ENTRYPOINT "..."
+                try:
+                    if '[' in line_strip and ']' in line_strip:
+                        # ENTRYPOINT ["..."] or ENTRYPOINT ['...']
+                        entrypoint_str = line_strip.split('ENTRYPOINT', 1)[1].strip()
+                        try:
+                            entrypoint_list = yaml.safe_load(entrypoint_str)
+                            if isinstance(entrypoint_list, list) and entrypoint_list:
+                                entrypoint = entrypoint_list[0]
+                            else:
+                                entrypoint = entrypoint_str
+                        except Exception:
+                            entrypoint = entrypoint_str
+                    else:
+                        # ENTRYPOINT ...
+                        entrypoint = line_strip.split('ENTRYPOINT', 1)[1].strip().strip('"').strip("'")
+                except Exception:
+                    entrypoint = None
+                break
+
+        if not entrypoint:
+            console.print(f"[yellow]No ENTRYPOINT found in Dockerfile for service '{service_name}'.[/]")
+            return None
+
+        # Find COPY line that copies to the entrypoint destination
+        for line in lines:
+            line_strip = line.strip()
+            if line_strip.startswith('COPY') and entrypoint in line_strip:
+                # Example: COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+                parts = line_strip.split()
+                if len(parts) >= 3:
+                    entrypoint_src = parts[1]
+                break
+
+        # If COPY ./entrypoint.sh ... found, resolve the source path
+        entrypoint_path = None
+        if entrypoint_src and entrypoint_src.startswith('./'):
+            entrypoint_src_file = entrypoint_src[2:]  # remove ./
+            # debug(entrypoint_src_file = entrypoint_src_file, debug = 1)
+            entrypoint_path = os.path.join(base_dir, build_ctx, entrypoint_src_file)
+            # debug(entrypoint_path = entrypoint_path, debug = 1)
+        elif entrypoint_src:
+            entrypoint_path = os.path.join(base_dir, build_ctx, entrypoint_src)
+            # debug(entrypoint_path = entrypoint_path, debug = 1)
+        else:
+            # fallback: try to resolve entrypoint as relative to Dockerfile
+            # debug(dockerfile_path = dockerfile_path, debug = 1)
+            entrypoint_path = os.path.join(os.path.dirname(dockerfile_path), os.path.basename(entrypoint))
+            # debug(entrypoint_path = entrypoint_path, debug = 1)
+
+        # debug(entrypoint = entrypoint, entrypoint_src = entrypoint_src, entrypoint_path = entrypoint_path, debug = 1)
+        # debug(entrypoint_path_is_file = os.path.isfile(entrypoint_path), debug = 1)
+        # Try absolute path if entrypoint is absolute and not found yet
+        if entrypoint_path and not os.path.isfile(entrypoint_path):
+            if os.path.isabs(entrypoint):
+                alt_path = os.path.join(base_dir, build_ctx, entrypoint.lstrip('/\\'))
+                # debug(alt_path = alt_path, debug = 1)
+                if os.path.isfile(alt_path):
+                    entrypoint_path = alt_path
+
+        # print(f"entrypoint: {entrypoint}")
+        # print(f"entrypoint_path: {entrypoint_path}")
+        # print(f"os.path.isfile(entrypoint_path): {os.path.isfile(entrypoint_path)}")
+        if not entrypoint_path or not os.path.isfile(entrypoint_path):
+            console.print(f"[white on red]Entrypoint script not found:[/] {entrypoint_path or entrypoint}")
+            return None
+
+        if read:
+            try:
+                with open(entrypoint_path, 'r') as f:
+                    script_content = f.read()
+                syntax = Syntax(script_content, "bash", theme="fruity", line_numbers=True)
+                console.print(f"\n[bold cyan]Entrypoint script for service[/] '[black on #FFFF00]{service_name}[/]':\n")
+                console.print(syntax)
+            except Exception as e:
+                console.print(f"[red]Error reading entrypoint script:[/] {e}")
+        return entrypoint_path
+    
+    @classmethod
+    def edit_entrypoint(cls, service_name):
+        """
+        Edit the entrypoint script for a given service using nvim, nano, or vim.
+        """
+        entrypoint_path = cls.read_entrypoint(service_name, read=False)
+        if not entrypoint_path:
+            console.print(f"[white on red]No entrypoint script found for service '{service_name}'.[/]")
+            return None
+        
+        editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
+        for editor in editors:
+            if shutil.which(editor):
+                try:
+                    subprocess.run([editor, entrypoint_path], check=True)
+                    return
+                except subprocess.CalledProcessError as e:
+                    console.print(f"[red]Error launching {editor}:[/] {e}")
+                    continue
+        console.print("[white on red]No suitable editor found to edit the entrypoint script.[/]")
+    
+    @classmethod
     def edit_dockerfile(cls, path = None, service_name = None):
         """
         Edit the Dockerfile using nvim if exist, if not then nano if exists, if not then vim. use subprocess.run() and check beforehand if the editor is installed.
@@ -358,8 +492,7 @@ class DDF:
         Edit a service section in the YAML file using nvim, nano, or vim.
         Only the selected service section will be edited and replaced back.
         """
-        import tempfile
-
+        
         file_path = file_path or CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
         if not service_name:
             console.print("[white on red]No service name provided for editing.[/]")
@@ -515,6 +648,8 @@ class DDF:
         parser.add_argument('-E', '--edit-service', action='store_true', help="Edit the service section for the given service")
         parser.add_argument('-dd', '--duplicate-service', metavar='NEW_SERVICE_NAME', help="Duplicate the service section with a new service name")
         parser.add_argument('-cs', '--copy-service', help = "copy service section to clipboar", action = 'store_true')
+        parser.add_argument('-en', '--entrypoint', action='store_true', help="Read and display the entrypoint script for the given service")
+        parser.add_argument('-ed', '--edit-entrypoint', action='store_true', help="Edit the entrypoint script for the given service")
         
         args = parser.parse_args()
 
@@ -548,6 +683,10 @@ class DDF:
             DDF.list_service_ports(content, args.service)
         elif args.service and args.dockerfile:
             DDF.read_dockerfile(service_name=args.service)
+        elif args.service and args.entrypoint:
+            DDF.read_entrypoint(service_name=args.service)
+        elif args.service and args.edit_entrypoint:
+            DDF.edit_entrypoint(service_name=args.service)
         elif args.service and args.edit_dockerfile:
             DDF.edit_dockerfile(service_name=args.service)
         elif args.list_service_name:
