@@ -213,18 +213,46 @@ class DDF:
                 continue
             if not isinstance(value, dict):
                 continue
+            # debug(value = value, debug = 1)
             devices = value.get('devices', [])
             if devices:
                 found = True
                 console.print(f"[bold cyan]{svc}:[/]")
                 console.print("  devices:")
                 for dev in devices:
-                    console.print(f"    - {dev}")
+                    de = dev.split(':')
+                    console.print(f"    [bold #FFAA00]- {de[0]}[/]: [bold #00AAFF]{de[1]}[/]" if len(de) > 1 else f"    [bold #FFAA00]- {dev}[/]")
         if not found:
             if service:
                 console.print(f"[yellow]No devices found for service pattern:[/] {service}")
             else:
                 console.print(f"[yellow]No devices found in any service.[/]")
+                
+    @classmethod
+    def list_service_volumes(cls, content, service=None):
+        """
+        List all volumes for a given service.
+        """
+        services = content.get('services', {})
+        found = False
+        for svc, value in services.items():
+            if service and not (fnmatch.fnmatch(svc, service) or service in svc):
+                continue
+            if not isinstance(value, dict):
+                continue
+            volumes = value.get('volumes', [])
+            if volumes:
+                found = True
+                console.print(f"[bold cyan]{svc}:[/]")
+                console.print("  volumes:")
+                for vol in volumes:
+                    vo = vol.split(':')
+                    console.print(f"    - [bold #00AAFF]{vo[0]}[/]: [bold #FFAA00]{vo[1]}[/]" if len(vo) > 1 else f"    - [bold #00AAFF]{vol}[/]")
+        if not found:
+            if service:
+                console.print(f"[yellow]No volumes found for service pattern:[/] {service}")
+            else:
+                console.print(f"[yellow]No volumes found in any service.[/]")
     
     @classmethod
     def list_service_ports(cls, content, service):
@@ -478,6 +506,7 @@ class DDF:
         parser.add_argument('-f', '--find', metavar='PORT', help="Find port in all services", type=str)
         parser.add_argument('-p', '--port', metavar='PORT', help="Check if PORT is duplicate among all services", type=str)
         parser.add_argument('-D', '--device', action='store_true', help="Show devices for the given service or all services")
+        parser.add_argument('-vol', '--volumes', action='store_true', help="Show devices for the given service or all services")
         parser.add_argument('-P', '--list-port', action='store_true', help="List all ports in the YAML file")
         parser.add_argument('-L', '--list-service-name', action='store_true', help="List all service names in the YAML file")
         # parser.add_argument('-r', '--dockerfile', metavar='SERVICE', help="Read and display the Dockerfile for the given service")
@@ -501,6 +530,8 @@ class DDF:
 
         if args.device:
             DDF.list_service_devices(content, args.service)
+        if args.volumes:
+            DDF.list_service_volumes(content, args.service)
         elif args.list_port:
             if args.service:
                 DDF.list_service_ports(content, args.service)
