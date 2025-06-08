@@ -70,7 +70,11 @@ class DDF:
         return content
     
     @classmethod
-    def show_service_detail(cls, content, service):
+    def find_service(cls, content, service):
+        """
+        Find a service in the YAML content.
+        Supports pattern matching and substring search.
+        """
         services = content.get('services', {})
         # Support the pattern/wildcard and substring
         matched = [
@@ -79,13 +83,38 @@ class DDF:
         ]
         if not matched:
             console.print(f"[yellow]Service pattern '{service}' not found.[/]")
+            return None
+        return matched[0] if len(matched) == 1 else matched
+    
+    @classmethod
+    def show_service_detail(cls, content, service):
+        """
+        Show the full configuration for a given service.
+        """
+        services = content.get('services', {})
+        matched = cls.find_service(content, service)
+        if not matched:
             return
-        for svc in matched:
-            service_val = services.get(svc)
-            console.print(f"[bold cyan]Configuration for service '{svc}':[/]")
-            yaml_str = yaml.dump(service_val, sort_keys=False, allow_unicode=True)
+        
+        if isinstance(matched, str):
+            service_val = services.get(matched)
+            if not service_val:
+                console.print(f"[yellow]Service '{matched}' not found.[/]")
+                return
+            console.print(f"[bold cyan]Configuration for service '{matched}':[/]")
+            yaml_str = yaml.dump({matched: service_val}, sort_keys=False, allow_unicode=True)
             syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
             console.print(syntax)
+        else:
+            for svc in matched:
+                service_val = services.get(svc)
+                if not service_val:
+                    console.print(f"[yellow]Service '{svc}' not found.[/]")
+                    continue
+                console.print(f"[bold cyan]Configuration for service '{svc}':[/]")
+                yaml_str = yaml.dump({svc: service_val}, sort_keys=False, allow_unicode=True)
+                syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
+                console.print(syntax)
             
     @classmethod
     def list_service_ports(cls, content, service):
@@ -517,6 +546,21 @@ class DDF:
             console.print(f"[yellow]Service pattern '{service_name}' not found.[/]")
             return
 
+        if len(matched) > 1:
+            for index, svc in enumerate(matched, start=1):
+                console.print(f"{index}. [bold cyan]{svc}[/]")
+                
+            q = console.input(f"[bold yellow]Multiple services match '{service_name}': {', '.join(matched)}. Please specify which service to edit: [/]")
+            try:
+                index = int(q) - 1
+                if index < 0 or index >= len(matched):
+                    console.print("[red]Invalid service selection.[/]")
+                    return
+                matched = [matched[index]]
+            except ValueError:
+                console.print("[red]Invalid input. Please enter a number.[/]")
+                return
+            
         for svc in matched:
             svc_data = services[svc]
             # Simpan section ke file sementara
@@ -628,6 +672,39 @@ class DDF:
             console.print(f"[red]Error writing YAML file:[/] {e}")
     
     @classmethod
+    def remove_service(cls, service_name):
+        """
+        Remove a service section from the YAML file.
+        """
+        file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not os.path.isfile(file_path):
+            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            return
+
+        try:
+            content = cls.open_file(file_path)
+        except Exception as e:
+            console.print(f"[red]Error loading YAML:[/] {e}")
+            return
+
+        services = content.get('services', {})
+        if service_name not in services:
+            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            return
+
+        # Remove the service
+        del services[service_name]
+        content['services'] = services
+
+        # Save back to the file
+        try:
+            with open(file_path, 'w') as f:
+                yaml.dump(content, f, sort_keys=False, allow_unicode=True)
+            console.print(f"[bold green]Service '{service_name}' removed successfully from {file_path}[/bold green]")
+        except Exception as e:
+            console.print(f"[red]Error writing YAML file:[/] {e}")
+    
+    @classmethod
     def usage(cls):
         default_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
 
@@ -650,6 +727,7 @@ class DDF:
         parser.add_argument('-cs', '--copy-service', help = "copy service section to clipboar", action = 'store_true')
         parser.add_argument('-en', '--entrypoint', action='store_true', help="Read and display the entrypoint script for the given service")
         parser.add_argument('-ed', '--edit-entrypoint', action='store_true', help="Edit the entrypoint script for the given service")
+        parser.add_argument('-rm', '--remove-service', action='store_true', help="Remove the service section for the given service")
         
         args = parser.parse_args()
 
@@ -687,6 +765,8 @@ class DDF:
             DDF.read_entrypoint(service_name=args.service)
         elif args.service and args.edit_entrypoint:
             DDF.edit_entrypoint(service_name=args.service)
+        elif args.service and args.remove_service:
+            DDF.remove_service(args.service)
         elif args.service and args.edit_dockerfile:
             DDF.edit_dockerfile(service_name=args.service)
         elif args.list_service_name:
