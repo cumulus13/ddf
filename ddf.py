@@ -45,27 +45,27 @@ class DDF:
     @classmethod
     def open_file(cls, file_path):
         if not os.path.isfile(file_path):
-            raise FileNotFoundError(f"The file {file_path} does not exist.")
+            raise FileNotFoundError(f"❌ The file {file_path} does not exist.")
         if not file_path.endswith(('.yml', '.yaml')):
-            raise ValueError(f"The file {file_path} is not a YAML file.")
+            raise ValueError(f"❌ The file {file_path} is not a YAML file.")
         if not os.access(file_path, os.R_OK):
-            raise PermissionError(f"The file {file_path} is not readable.")
+            raise PermissionError(f"❌ The file {file_path} is not readable.")
         if os.path.getsize(file_path) == 0:
-            raise ValueError(f"The file {file_path} is empty.")
+            raise ValueError(f"❌ The file {file_path} is empty.")
 
-        # Buat hash dari isi file
+        # Create the hash from the contents of the file
         with open(file_path, 'rb') as f:
             file_bytes = f.read()
             file_hash = hashlib.sha256(file_bytes).hexdigest()
 
-        # Cek cache
+        # Check Cache
         if file_hash in cls._file_cache:
             return cls._file_cache[file_hash]
 
-        # Parse YAML jika belum ada di cache
+        # Parse yaml if not in the cache
         content = yaml.load(file_bytes.decode('utf-8'), Loader=yaml.FullLoader)
         if not content:
-            raise ValueError(f"The file {file_path} is empty or contains invalid YAML.")
+            raise ValueError(f"❌ The file {file_path} is empty or contains invalid YAML.")
         cls._file_cache[file_hash] = content
         return content
     
@@ -82,7 +82,7 @@ class DDF:
             if fnmatch.fnmatch(svc, service) or service in svc
         ]
         if not matched:
-            console.print(f"[yellow]Service pattern '{service}' not found.[/]")
+            console.print(f"\n❌ [yellow]Service pattern '{service}' not found.[/]")
             return None
         return matched[0] if len(matched) == 1 else matched
     
@@ -99,9 +99,9 @@ class DDF:
         if isinstance(matched, str):
             service_val = services.get(matched)
             if not service_val:
-                console.print(f"[yellow]Service '{matched}' not found.[/]")
+                console.print(f"\n❌ [yellow]Service '{matched}' not found.[/]")
                 return
-            console.print(f"[bold cyan]Configuration for service '{matched}':[/]")
+            console.print(f"\n🔧 [bold cyan]Configuration for service '{matched}':[/]\n")
             yaml_str = yaml.dump({matched: service_val}, sort_keys=False, allow_unicode=True)
             syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
             console.print(syntax)
@@ -109,9 +109,9 @@ class DDF:
             for svc in matched:
                 service_val = services.get(svc)
                 if not service_val:
-                    console.print(f"[yellow]Service '{svc}' not found.[/]")
+                    console.print(f"\n❌ [yellow]Service '{svc}' not found.[/]")
                     continue
-                console.print(f"[bold cyan]Configuration for service '{svc}':[/]")
+                console.print(f"\n❌ [bold cyan]Configuration for service '{svc}':[/]\n")
                 yaml_str = yaml.dump({svc: service_val}, sort_keys=False, allow_unicode=True)
                 syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
                 console.print(syntax)
@@ -122,20 +122,20 @@ class DDF:
         # debug(services = services)
         service_val = services.get(service)
         if not isinstance(service_val, dict):
-            console.print(f"[yellow]Service '{service}' is not a dictionary or has no ports defined.[/]")
+            console.print(f"\n❌ [yellow]Service '{service}' is not a dictionary or has no ports defined.[/]")
             return
         ports = service_val.get('ports', [])
         if not ports:
-            console.print(f"[yellow]No ports found for service:[/] {service}")
+            console.print(f"\n❌ [yellow]No ports found for service:[/] {service}")
             return
-        console.print(f"[bold cyan]Ports for service '{service}':[/]")
+        console.print(f"\n🚩 [bold cyan]Ports for service '{service}':[/]\n")
         for port in ports:
             console.print(f"• [green]{port}[/]")
 
     @classmethod
     def find_duplicate_port(cls, content, target_service=None):
         if content is None or not isinstance(content, dict):
-            raise ValueError("Invalid YAML content.")
+            raise ValueError("❌ Invalid YAML content.")
 
         console.print("🔍 [bold #FFFF00]Scanning for duplicate ports...\n[/]")
         duplicates = []
@@ -178,36 +178,6 @@ class DDF:
                 f"[black on #55FF00]{protocol2}[/] "
             )
             
-    @classmethod
-    def find_port1(cls, content, port):
-        services = content.get('services', {})
-        found_any = False
-        for service, value in services.items():
-            if not isinstance(value, dict):
-                continue
-            ports = value.get('ports', [])
-            if not ports:
-                continue
-            matched_ports = []
-            found_in_service: List[str] = []
-            for p in ports:
-                p1, p2 = p.split(":")
-                if p1.strip() == port or p2.strip() == port:
-                    matched_ports.append(f"[white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
-                    found_in_service.append(service)
-                else:
-                    matched_ports.append(p)
-            if list(set(found_in_service)):
-                found_any = True
-                if len(matched_ports) > 0:
-                    console.print("✅ [bold #00FFFF]Found service using port[/] [bold #FFAA00]{}[/]:".format(port))
-                console.print(f"- [bold cyan]{service}[/]:")
-                console.print("  ports:")
-                for mp in matched_ports:
-                    console.print(f"    - {mp}")
-        if not found_any:
-            console.print(f"👍 [black in #FFFF00]No service found with port {port}[/]")
-
     @classmethod
     def find_port(cls, content, port, compact=True):
         services = content.get('services', {})
@@ -279,9 +249,9 @@ class DDF:
                 console.print(f"  - [bold cyan]{svc}[/]: [yellow]{p}[/]")
         elif len(found) == 1:
             svc, p = found[0]
-            console.print(f"[bold #00FFFF]Port {port} only found in service:[/] [bold #FFAA00]{svc}[/] ([yellow]{p}[/])")
+            console.print(f"🚩 [bold #00FFFF]Port {port} only found in service:[/] [bold #FFAA00]{svc}[/] ([yellow]{p}[/])")
         else:
-            console.print(f"[bold #FFFF00]Port {port} not found in any service.[/]")
+            console.print(f"⚠️ [bold #FF007F]Port[/] [#FFFF00]{port}[/] [bold #FF007F]not found in any service.[/]")
         
         return found
             
@@ -290,7 +260,7 @@ class DDF:
         services = content.get('services', {})
         found = False
         for svc, value in services.items():
-            # Dukung pattern/wildcard dan substring
+            # Support the pattern/wildcard and substring
             if service and not (fnmatch.fnmatch(svc, service) or service in svc):
                 continue
             if not isinstance(value, dict):
@@ -306,9 +276,9 @@ class DDF:
                     console.print(f"    [bold #FFAA00]- {de[0]}[/]: [bold #00AAFF]{de[1]}[/]" if len(de) > 1 else f"    [bold #FFAA00]- {dev}[/]")
         if not found:
             if service:
-                console.print(f"[yellow]No devices found for service pattern:[/] {service}")
+                console.print(f"⚠️ [yellow]No devices found for service pattern:[/] {service}")
             else:
-                console.print(f"[yellow]No devices found in any service.[/]")
+                console.print(f"❌ [yellow]No devices found in any service.[/]")
                 
     @classmethod
     def list_service_volumes(cls, content, service=None):
@@ -332,9 +302,9 @@ class DDF:
                     console.print(f"    - [bold #00AAFF]{vo[0]}[/]: [bold #FFAA00]{vo[1]}[/]" if len(vo) > 1 else f"    - [bold #00AAFF]{vol}[/]")
         if not found:
             if service:
-                console.print(f"[yellow]No volumes found for service pattern:[/] {service}")
+                console.print(f"⚠️ [yellow]No volumes found for service pattern:[/] {service}")
             else:
-                console.print(f"[yellow]No volumes found in any service.[/]")
+                console.print(f"❌ [yellow]No volumes found in any service.[/]")
     
     @classmethod
     def list_service_ports(cls, content, service):
@@ -344,13 +314,13 @@ class DDF:
         services = content.get('services', {})
         service_val = services.get(service)
         if not service_val:
-            console.print(f"[yellow]Service '{service}' not found.[/]")
+            console.print(f"\n❌ [yellow]Service '{service}' not found.[/]")
             return
         ports = service_val.get('ports', [])
         if not ports:
             console.print(f"[yellow]No ports found for service:[/] {service}")
             return
-        console.print(f"[bold cyan]Ports for service '{service}':[/]")
+        console.print(f"\n📌 [bold cyan]Ports for service '{service}':[/]\n")
         for port in ports:
             console.print(f"  - [green]{port}[/]")
     
@@ -358,9 +328,9 @@ class DDF:
     def list_service_names(cls, content):
         services = content.get('services', {})
         if not services:
-            console.print("[yellow]No services found in the YAML file.[/]")
+            console.print("\n❌ [yellow]No services found in the YAML file.[/]")
             return
-        console.print("[bold cyan]Available service names:[/]")
+        console.print("\n🍁 [bold #FFFF00]Available service names:[/]\n")
         for service in services.keys():
             console.print(f"  - [bold #00FFFF]{service}[/]")
     
@@ -374,13 +344,13 @@ class DDF:
         services = content.get('services', {})
         service_val = services.get(service_name)
         if not service_val:
-            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            console.print(f"\n❌ [yellow]Service '{service_name}' not found.[/]")
             return None
         dockerfile = service_val.get('build', {}).get('dockerfile')
         build_path = service_val.get('build', {}).get('context', '.')
         debug(build_path = build_path)
         if not dockerfile:
-            console.print(f"[yellow]No Dockerfile specified for service '{service_name}'.[/]")
+            console.print(f"\n❌ [yellow]No Dockerfile specified for service '{service_name}'.[/]")
             return None
         return str(Path(root_path) / build_path / dockerfile)
     
@@ -391,23 +361,23 @@ class DDF:
         """
         path = cls.get_dockerfile(service_name) if service_name else path
         if not path:
-            console.print("[white on red]No Dockerfile path provided or found.[/]")
+            console.print("\n❌ [white on red]No Dockerfile path provided or found.[/]")
             return None
         content = None
         if not os.path.isfile(path):
-            console.print(f"[white on red]Dockerfile not found:[/] {path}")
+            console.print(f"\n❌ [white on red]Dockerfile not found:[/] {path}")
             return None
         try:
             with open(path, 'r') as f:
                 content = f.read()
             if not content:
-                console.print(f"[yellow]Dockerfile is empty:[/] {path}")
+                console.print(f"\n🔵 [yellow]Dockerfile is empty:[/] {path}")
                 return None
             syntax = Syntax(content, "dockerfile", theme="fruity", line_numbers=True)
             console.print(f"\n[bold cyan]Dockerfile for service[/] [black on #FFFF00]'{service_name}[/]':\n" if service_name else "[bold cyan]Dockerfile content:[/]\n")
             console.print(syntax)
         except Exception as e:
-            console.print(f"[red]Error reading Dockerfile:[/] {e}")
+            console.print(f"\n❌ [red]Error reading Dockerfile:[/] {e}")
             return None
     
     @classmethod
@@ -418,7 +388,7 @@ class DDF:
         """
         dockerfile_path = cls.get_dockerfile(service_name)
         if not dockerfile_path:
-            console.print(f"[white on red]No Dockerfile found for service '{service_name}'.[/]")
+            console.print(f"\n❌ [white on red]No Dockerfile found for service '{service_name}'.[/]")
             return None
 
         # Get docker-compose.yml path and context dir
@@ -437,7 +407,7 @@ class DDF:
             with open(dockerfile_path, 'r') as f:
                 lines = f.readlines()
         except Exception as e:
-            console.print(f"[red]Error reading Dockerfile:[/] {e}")
+            console.print(f"\n❌ [red]Error reading Dockerfile:[/] {e}")
             return None
 
         # Find ENTRYPOINT line
@@ -465,7 +435,7 @@ class DDF:
                 break
 
         if not entrypoint:
-            console.print(f"[yellow]No ENTRYPOINT found in Dockerfile for service '{service_name}'.[/]")
+            console.print(f"\n❌ [yellow]No ENTRYPOINT found in Dockerfile for service '{service_name}'.[/]")
             return None
 
         # Find COPY line that copies to the entrypoint destination
@@ -508,7 +478,7 @@ class DDF:
         # print(f"entrypoint_path: {entrypoint_path}")
         # print(f"os.path.isfile(entrypoint_path): {os.path.isfile(entrypoint_path)}")
         if not entrypoint_path or not os.path.isfile(entrypoint_path):
-            console.print(f"[white on red]Entrypoint script not found:[/] {entrypoint_path or entrypoint}")
+            console.print(f"\n❌ [white on red]Entrypoint script not found:[/] {entrypoint_path or entrypoint}")
             return None
 
         if read:
@@ -516,10 +486,10 @@ class DDF:
                 with open(entrypoint_path, 'r') as f:
                     script_content = f.read()
                 syntax = Syntax(script_content, "bash", theme="fruity", line_numbers=True)
-                console.print(f"\n[bold cyan]Entrypoint script for service[/] '[black on #FFFF00]{service_name}[/]':\n")
+                console.print(f"\n✅ [bold cyan]Entrypoint script for service[/] '[black on #FFFF00]{service_name}[/]':\n")
                 console.print(syntax)
             except Exception as e:
-                console.print(f"[red]Error reading entrypoint script:[/] {e}")
+                console.print(f"\n❌ [red]Error reading entrypoint script:[/] {e}")
         return entrypoint_path
     
     @classmethod
@@ -529,7 +499,7 @@ class DDF:
         """
         entrypoint_path = cls.read_entrypoint(service_name, read=False)
         if not entrypoint_path:
-            console.print(f"[white on red]No entrypoint script found for service '{service_name}'.[/]")
+            console.print(f"\n❌ [white on red]No entrypoint script found for service '{service_name}'.[/]")
             return None
         
         editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
@@ -539,9 +509,9 @@ class DDF:
                     subprocess.run([editor, entrypoint_path], check=True)
                     return
                 except subprocess.CalledProcessError as e:
-                    console.print(f"[red]Error launching {editor}:[/] {e}")
+                    console.print(f"\n❌ [red]Error launching {editor}:[/] {e}")
                     continue
-        console.print("[white on red]No suitable editor found to edit the entrypoint script.[/]")
+        console.print("\n❌ [white on red]No suitable editor found to edit the entrypoint script.[/]")
     
     @classmethod
     def edit_dockerfile(cls, path = None, service_name = None):
@@ -550,10 +520,10 @@ class DDF:
         """
         path = cls.get_dockerfile(service_name) if service_name else path
         if not path:
-            console.print("[white on red]No Dockerfile path provided or found.[/]")
+            console.print("\n❌ [white on red]No Dockerfile path provided or found.[/]")
             return None
         if not os.path.isfile(path):
-            console.print(f"[white on red]Dockerfile not found:[/] {path}")
+            console.print(f"\n❌ [white on red]Dockerfile not found:[/] {path}")
             return None
         
         editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
@@ -563,9 +533,9 @@ class DDF:
                     subprocess.run([editor, path], check=True)
                     return
                 except subprocess.CalledProcessError as e:
-                    console.print(f"[red]Error launching {editor}:[/] {e}")
+                    console.print(f"\n❌ [red]Error launching {editor}:[/] {e}")
                     continue
-        console.print("[white on red]No suitable editor found to edit the Dockerfile.[/]")
+        console.print("\n❌ [white on red]No suitable editor found to edit the Dockerfile.[/]")
         
     @classmethod
     def edit_service(cls, file_path=None, service_name=None):
@@ -577,11 +547,11 @@ class DDF:
         file_path = file_path or CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
         
         if not service_name:
-            console.print("❗ [white on red]No service name provided for editing.[/]")
+            console.print("⚠️ [white on red]No service name provided for editing.[/]")
             return
 
         if not os.path.isfile(file_path):
-            console.print(f"❗ [white on red]YAML file not found:[/] {file_path}")
+            console.print(f"⚠️ [white on red]YAML file not found:[/] {file_path}")
             return
 
         # Load YAML
@@ -596,14 +566,14 @@ class DDF:
         # Cari service yang cocok (pattern/wildcard/substring)
         matched = [svc for svc in services if fnmatch.fnmatch(svc, service_name) or service_name in svc]
         if not matched:
-            console.print(f"❗ [yellow]Service pattern '{service_name}' not found.[/]")
+            console.print(f"⚠️ [yellow]Service pattern '{service_name}' not found.[/]")
             return
 
         if len(matched) > 1:
             for index, svc in enumerate(matched, start=1):
                 console.print(f"{index}. [bold cyan]{svc}[/]")
                 
-            q = console.input(f"❗ [bold yellow]Multiple services match '{service_name}': {', '.join(matched)}. Please specify which service to edit: [/]")
+            q = console.input(f"⚠️ [bold yellow]Multiple services match '{service_name}': {', '.join(matched)}. Please specify which service to edit: [/]")
             try:
                 index = int(q) - 1
                 if index < 0 or index >= len(matched):
@@ -638,7 +608,7 @@ class DDF:
                         console.print(f"❌ [red]Unexpected error launching {editor}:[/] {e}")
                         continue
             else:
-                console.print("❗ [white on red]No suitable editor found to edit the service section.[/]")
+                console.print("⚠️ [white on red]No suitable editor found to edit the service section.[/]")
                 os.unlink(temp_path)
                 return
             # After editing, reread and replace the section
@@ -655,7 +625,7 @@ class DDF:
                 console.print(f"❌ [red]Error reading edited service section:[/] {e}")
                 os.unlink(temp_path)
                 # Stop the main file update process if error parsing yaml
-                console.print(f"❗ [bold red]YAML not updated due to error above. Please fix indentation (use spaces, not tabs).[/bold red]")
+                console.print(f"⚠️ [bold red]YAML not updated due to error above. Please fix indentation (use spaces, not tabs).[/bold red]")
                 return  
 
         # Save back to the original file
@@ -675,18 +645,18 @@ class DDF:
 
         file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
         if not os.path.isfile(file_path):
-            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {file_path}")
             return
 
         try:
             content = cls.open_file(file_path)
         except Exception as e:
-            console.print(f"[red]Error loading YAML:[/] {e}")
+            console.print(f"\n❌ [red]Error loading YAML:[/] {e}")
             return
 
         services = content.get('services', {})
         if service_name not in services:
-            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            console.print(f"\n❌ [yellow]Service '{service_name}' not found.[/]")
             return
 
         # Get the service section
@@ -695,7 +665,7 @@ class DDF:
 
         # Copy to clipboard
         clipboard.copy(yaml_str)
-        console.print(f"[bold green]Service '{service_name}' copied to clipboard successfully.[/]")
+        console.print(f"\n✅ [bold green]Service '{service_name}' copied to clipboard successfully.[/]")
     
     @classmethod
     def duplicate_server(cls, service_name, new_service_name):
@@ -705,18 +675,18 @@ class DDF:
         """
         file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
         if not os.path.isfile(file_path):
-            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {file_path}")
             return
 
         try:
             content = cls.open_file(file_path)
         except Exception as e:
-            console.print(f"[red]Error loading YAML:[/] {e}")
+            console.print(f"\n❌ [red]Error loading YAML:[/] {e}")
             return
 
         services = content.get('services', {})
         if service_name not in services:
-            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            console.print(f"\n❌ [yellow]Service '{service_name}' not found.[/]")
             return
 
         # Duplicate the service
@@ -727,9 +697,9 @@ class DDF:
         try:
             with open(file_path, 'w') as f:
                 yaml.dump(content, f, sort_keys=False, allow_unicode=True)
-            console.print(f"[bold green]Service '{service_name}' duplicated to '{new_service_name}' successfully in {file_path}[/bold green]")
+            console.print(f"\n✅ [bold green]Service '{service_name}' duplicated to '{new_service_name}' successfully in {file_path}[/bold green]")
         except Exception as e:
-            console.print(f"[red]Error writing YAML file:[/] {e}")
+            console.print(f"\n❌ [red]Error writing YAML file:[/] {e}")
     
     @classmethod
     def remove_service(cls, service_name):
@@ -738,18 +708,18 @@ class DDF:
         """
         file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
         if not os.path.isfile(file_path):
-            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {file_path}")
             return
 
         try:
             content = cls.open_file(file_path)
         except Exception as e:
-            console.print(f"[red]Error loading YAML:[/] {e}")
+            console.print(f"\n❌ [red]Error loading YAML:[/] {e}")
             return
 
         services = content.get('services', {})
         if service_name not in services:
-            console.print(f"[yellow]Service '{service_name}' not found.[/]")
+            console.print(f"\n❌ [yellow]Service '{service_name}' not found.[/]")
             return
 
         # Remove the service
@@ -760,9 +730,9 @@ class DDF:
         try:
             with open(file_path, 'w') as f:
                 yaml.dump(content, f, sort_keys=False, allow_unicode=True)
-            console.print(f"[bold green]Service '{service_name}' removed successfully from {file_path}[/bold green]")
+            console.print(f"\n⚠️ [bold green]Service '{service_name}' removed successfully from {file_path}[/bold green]")
         except Exception as e:
-            console.print(f"[red]Error writing YAML file:[/] {e}")
+            console.print(f"\n❌ [red]Error writing YAML file:[/] {e}")
     
     @classmethod
     def usage(cls):
@@ -793,13 +763,13 @@ class DDF:
         args = parser.parse_args()
 
         if not os.path.isfile(args.file):
-            console.print(f"[white on red]YAML file not found:[/] {args.file}")
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {args.file}")
             sys.exit(1)
 
         try:
             content = DDF.open_file(args.file)
         except Exception as e:
-            console.print(f"[red]Error:[/] {e}")
+            console.print(f"\n❌ [red]Error:[/] {e}")
             sys.exit(1)
 
         if args.device:
@@ -810,7 +780,7 @@ class DDF:
             if args.service:
                 DDF.list_service_ports(content, args.service)
             else:
-                console.print("[white on red]No service specified for listing ports.[/]")
+                console.print("\n❌ [white on red]No service specified for listing ports.[/]")
                 sys.exit(1)
         elif args.port:
             DDF.check_duplicate_port(content, args.port)
@@ -836,12 +806,12 @@ class DDF:
             DDF.edit_service(file_path=args.file, service_name=args.service)
         elif args.service and args.copy_service:
             if not args.service:
-                console.print("[white on red]No service name provided for copying.[/]")
+                console.print("\n❌ [white on red]No service name provided for copying.[/]")
                 sys.exit(1)
             DDF.copy_service(args.service)
         elif args.duplicate_service:
             if not args.service:
-                console.print("[white on red]No service name provided for duplication.[/]")
+                console.print("\n❌ [white on red]No service name provided for duplication.[/]")
                 sys.exit(1)
             DDF.duplicate_server(args.service, args.duplicate_service)
         else:

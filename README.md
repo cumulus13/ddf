@@ -2,6 +2,9 @@
 
 A powerful command-line utility for analyzing, managing, and editing Docker Compose files with rich terminal output and advanced features.
 
+[![Screenshot](./screenshot.png)](./screenshot.png)
+
+
 ## Features
 
 - **Service Management**: List, view, edit, duplicate, copy, and remove services
