@@ -137,6 +137,7 @@ class DDF:
         if content is None or not isinstance(content, dict):
             raise ValueError("Invalid YAML content.")
 
+        console.print("🔍 [bold #FFFF00]Scanning for duplicate ports...\n[/]")
         duplicates = []
         seen_host_ports = {}
 
@@ -167,6 +168,7 @@ class DDF:
                 continue
 
             console.print(
+                "❌ "
                 f"[bold #00FFFF]{s1}[/]/"
                 f"[white on #0000FF]{port1}[/]/"
                 f"[black on #55FF00]{protocol1}[/] "
@@ -177,7 +179,7 @@ class DDF:
             )
             
     @classmethod
-    def find_port(cls, content, port):
+    def find_port1(cls, content, port):
         services = content.get('services', {})
         found_any = False
         for service, value in services.items():
@@ -197,17 +199,67 @@ class DDF:
                     matched_ports.append(p)
             if list(set(found_in_service)):
                 found_any = True
+                if len(matched_ports) > 0:
+                    console.print("✅ [bold #00FFFF]Found service using port[/] [bold #FFAA00]{}[/]:".format(port))
                 console.print(f"- [bold cyan]{service}[/]:")
                 console.print("  ports:")
                 for mp in matched_ports:
                     console.print(f"    - {mp}")
         if not found_any:
-            console.print(f"[black in #FFFF00]No service found with port {port}[/]")
+            console.print(f"👍 [black in #FFFF00]No service found with port {port}[/]")
 
+    @classmethod
+    def find_port(cls, content, port, compact=True):
+        services = content.get('services', {})
+        found_any = False
+        output_lines = []
+        compact_lines = []
+
+        for service, value in services.items():
+            if not isinstance(value, dict):
+                continue
+            ports = value.get('ports', [])
+            if not ports:
+                continue
+            matched_ports = []
+            for p in ports:
+                p1, p2 = p.split(":")
+                if p1.strip() == port or p2.strip() == port:
+                    matched_ports.append(f"[white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
+                    # matched_ports.append(f"{p1}:{p2}")
+            if matched_ports:
+                found_any = True
+                # Format default (lama): tampilkan semua port
+                output_lines.append(f"- [bold #FFFF00]{service}[/]:")
+                output_lines.append("  ports:")
+                for p in ports:
+                    p1, p2 = p.split(":")
+                    p2 = p2.replace("/udp", f"[bold #FF00FF]/udp[/]").replace("/tcp", f"[bold #FF00FF]/tcp[/]")
+                    if p1.strip() == port or p2.strip() == port:
+                        output_lines.append(f"    - [white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
+                    else:
+                        # output_lines.append(f"    - {p}")
+                        output_lines.append(f"    - [#00FFFF]{p1}[/]:[#00FFFF]{p2}[/]")
+                # Format compact: hanya port yang cocok
+                img = value.get('image', '')
+                ports_str = ', '.join([f'"{x}"' for x in matched_ports])
+                compact_lines.append(f"- [bold #FFFF00]{service}[/]: ports: [{ports_str}]{f' image: [#00FFFF]{img}' if img else ''}[/]")
+
+        if found_any:
+            console.print("\n✅ [bold #00FFFF]Found service using port[/] [bold #FFAA00]{}[/]:\n".format(port))
+            if compact:
+                for line in compact_lines:
+                    console.print(line)
+            else:
+                for line in output_lines:
+                    console.print(line)
+        else:
+            console.print(f"👍 [black in #FFFF00]No service found with port {port}[/]")        
+            
     @classmethod
     def check_duplicate_port(cls, content, port):
         """
-        Cek apakah port tertentu duplicate di antara semua service.
+        Check whether a particular port is duplicate among all services.
         """
         services = content.get('services', {})
         found = []
@@ -222,7 +274,7 @@ class DDF:
                 if port == parts[0].strip():
                     found.append((service, p))
         if len(found) > 1:
-            console.print(f"[white on red]Port {port} is DUPLICATE in these services:[/]")
+            console.print(f"❌ [#FF00FF]Port[/] [bold #FFFF00]{port}[/] [#FF00FF]is DUPLICATE in these services:[/]")
             for svc, p in found:
                 console.print(f"  - [bold cyan]{svc}[/]: [yellow]{p}[/]")
         elif len(found) == 1:
@@ -523,12 +575,13 @@ class DDF:
         """
         
         file_path = file_path or CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        
         if not service_name:
-            console.print("[white on red]No service name provided for editing.[/]")
+            console.print("❗ [white on red]No service name provided for editing.[/]")
             return
 
         if not os.path.isfile(file_path):
-            console.print(f"[white on red]YAML file not found:[/] {file_path}")
+            console.print(f"❗ [white on red]YAML file not found:[/] {file_path}")
             return
 
         # Load YAML
@@ -536,38 +589,42 @@ class DDF:
             with open(file_path, 'r') as f:
                 content = yaml.safe_load(f)
         except Exception as e:
-            console.print(f"[red]Error loading YAML:[/] {e}")
+            console.print(f"❌ [red]Error loading YAML:[/] {e}")
             return
 
         services = content.get('services', {})
         # Cari service yang cocok (pattern/wildcard/substring)
         matched = [svc for svc in services if fnmatch.fnmatch(svc, service_name) or service_name in svc]
         if not matched:
-            console.print(f"[yellow]Service pattern '{service_name}' not found.[/]")
+            console.print(f"❗ [yellow]Service pattern '{service_name}' not found.[/]")
             return
 
         if len(matched) > 1:
             for index, svc in enumerate(matched, start=1):
                 console.print(f"{index}. [bold cyan]{svc}[/]")
                 
-            q = console.input(f"[bold yellow]Multiple services match '{service_name}': {', '.join(matched)}. Please specify which service to edit: [/]")
+            q = console.input(f"❗ [bold yellow]Multiple services match '{service_name}': {', '.join(matched)}. Please specify which service to edit: [/]")
             try:
                 index = int(q) - 1
                 if index < 0 or index >= len(matched):
-                    console.print("[red]Invalid service selection.[/]")
+                    console.print("❌ [red]Invalid service selection.[/]")
                     return
                 matched = [matched[index]]
             except ValueError:
-                console.print("[red]Invalid input. Please enter a number.[/]")
+                console.print("❌ [red]Invalid input. Please enter a number.[/]")
+                return
+            except Exception as e:
+                console.print(f"❌ [red]Unexpected error:[/] {e}")
                 return
             
         for svc in matched:
+            console.print(f"📝 [bold #FFFF00]Opening[/] [bold #00FFFF]{svc}[/] [bold #FFFF00]service config in editor...\n[/]")
             svc_data = services[svc]
-            # Simpan section ke file sementara
+            # Save Section to Temporary Files
             with tempfile.NamedTemporaryFile('w+', delete=False, suffix='.yml') as tf:
                 temp_path = tf.name
                 yaml.dump({svc: svc_data}, tf, sort_keys=False, allow_unicode=True)
-            # Pilih editor
+            # Select Editor
             editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
             for editor in editors:
                 if shutil.which(editor):
@@ -575,36 +632,39 @@ class DDF:
                         subprocess.run([editor, temp_path], check=True)
                         break
                     except subprocess.CalledProcessError as e:
-                        console.print(f"[red]Error launching {editor}:[/] {e}")
+                        console.print(f"❌ [red]Error launching {editor}:[/] {e}")
+                        continue
+                    except Exception as e:
+                        console.print(f"❌ [red]Unexpected error launching {editor}:[/] {e}")
                         continue
             else:
-                console.print("[white on red]No suitable editor found to edit the service section.[/]")
+                console.print("❗ [white on red]No suitable editor found to edit the service section.[/]")
                 os.unlink(temp_path)
                 return
-            # Setelah diedit, baca kembali dan replace section
+            # After editing, reread and replace the section
             try:
                 with open(temp_path, 'r') as tf:
                     edited = yaml.safe_load(tf)
                 if not edited or svc not in edited:
-                    console.print(f"[red]No valid service section found after editing. Skipped update for '{svc}'.[/]")
+                    console.print(f"❌ [red]No valid service section found after editing. Skipped update for[/] [bold #FFFF00]'{svc}'.[/]")
                     os.unlink(temp_path)
                     continue
                 content['services'][svc] = edited[svc]
                 os.unlink(temp_path)
             except Exception as e:
-                console.print(f"[red]Error reading edited service section:[/] {e}")
+                console.print(f"❌ [red]Error reading edited service section:[/] {e}")
                 os.unlink(temp_path)
-                # Hentikan proses update file utama jika error parsing YAML
-                console.print(f"[bold red]YAML not updated due to error above. Please fix indentation (use spaces, not tabs).[/bold red]")
-                return  # <--- tambahkan return di sini!
+                # Stop the main file update process if error parsing yaml
+                console.print(f"❗ [bold red]YAML not updated due to error above. Please fix indentation (use spaces, not tabs).[/bold red]")
+                return  
 
-        # Simpan kembali ke file asli
+        # Save back to the original file
         try:
             with open(file_path, 'w') as f:
                 yaml.dump(content, f, sort_keys=False, allow_unicode=True)
-            console.print(f"[bold green]Service section(s) updated successfully in {file_path}[/bold green]")
+            console.print(f"✅ [bold green]Service section(s) updated successfully in {file_path}[/bold green]")
         except Exception as e:
-            console.print(f"[red]Error writing YAML file:[/] {e}")
+            console.print(f"❌ [red]Error writing YAML file:[/] {e}")
         
     @classmethod
     def copy_service(cls, service_name):
@@ -728,6 +788,7 @@ class DDF:
         parser.add_argument('-en', '--entrypoint', action='store_true', help="Read and display the entrypoint script for the given service")
         parser.add_argument('-ed', '--edit-entrypoint', action='store_true', help="Edit the entrypoint script for the given service")
         parser.add_argument('-rm', '--remove-service', action='store_true', help="Remove the service section for the given service")
+        parser.add_argument('-a', '--all', action='store_true', help="Show all services and their ports, devices, and volumes")
         
         args = parser.parse_args()
 
@@ -754,7 +815,7 @@ class DDF:
         elif args.port:
             DDF.check_duplicate_port(content, args.port)
         elif args.find or (args.service and args.service.isdigit()):
-            DDF.find_port(content, args.find or args.service)
+            DDF.find_port(content, args.find or args.service, compact=False if args.all else True)
         elif args.service and args.detail:
             DDF.show_service_detail(content, args.service)
         elif args.service and args.list:
