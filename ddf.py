@@ -113,7 +113,7 @@ class DDF:
                 if not service_val:
                     console.print(f"\n❌ [yellow]Service '{svc}' not found.[/]")
                     continue
-                console.print(f"\n❌ [bold cyan]Configuration for service '{svc}':[/]\n")
+                console.print(f"\n🔧 [bold cyan]Configuration for service '{svc}':[/]\n")
                 yaml_str = yaml.dump({svc: service_val}, sort_keys=False, allow_unicode=True)
                 syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
                 console.print(syntax)
