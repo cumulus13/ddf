@@ -10,6 +10,8 @@ import hashlib
 from configset import configset
 from rich_argparse import RichHelpFormatter, _lazy_rich as rr
 from rich.syntax import Syntax
+from rich.table import Table
+from rich import box
 from typing import ClassVar
 from typing import List
 import fnmatch
@@ -87,7 +89,7 @@ class DDF:
         return matched[0] if len(matched) == 1 else matched
     
     @classmethod
-    def show_service_detail(cls, content, service):
+    def show_service_detail(cls, content, service, line_numbers=True):
         """
         Show the full configuration for a given service.
         """
@@ -103,7 +105,7 @@ class DDF:
                 return
             console.print(f"\n🔧 [bold cyan]Configuration for service '{matched}':[/]\n")
             yaml_str = yaml.dump({matched: service_val}, sort_keys=False, allow_unicode=True)
-            syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True)
+            syntax = Syntax(yaml_str, "yaml", theme="fruity", line_numbers=True if line_numbers else False)
             console.print(syntax)
         else:
             for svc in matched:
@@ -305,7 +307,41 @@ class DDF:
                 console.print(f"⚠️ [yellow]No volumes found for service pattern:[/] {service}")
             else:
                 console.print(f"❌ [yellow]No volumes found in any service.[/]")
-    
+                
+    @classmethod
+    def list_hostnames(cls, content, service=None):
+        """
+        List the hostname(s) for a given service, or all hostnames if no service is specified.
+        """
+        services = content.get('services', {})
+        found = False
+        lines = []
+        for svc, value in services.items():
+            if service and not (fnmatch.fnmatch(svc, service) or service in svc):
+                continue
+            if not isinstance(value, dict):
+                continue
+            hostname = value.get('hostname')
+            if hostname:
+                found = True
+                # lines.append(f"[bold cyan]{svc}:[/]  hostname: [bold #00AAFF]{hostname}[/]")
+                lines.append([f"[bold #FFFF00]{svc}[/]", f"[bold #00AAFF]{hostname}[/]"])
+        if not found:
+            if service:
+                console.print(f"⚠️ [yellow]No hostname found for service pattern:[/] [white on blue]{service}[/]")
+            else:
+                console.print(f"❌ [yellow]No hostnames found in any service.[/]")
+        else:
+            console.print("\n✅ [bold #00FFFF]Hostnames found:[/]\n")
+            table = Table(show_header=False, show_edge=False, box=None, show_lines=False, pad_edge=False)
+            # table = Table(box=box.SQUARE, show_lines = True)
+            table.add_column("service", justify = "left")
+            table.add_column("", justify = "left")
+            table.add_column('hostname', justify = "left")
+            for line in lines:
+                table.add_row(line[0], "[#FF55FF]hostname:[/]", line[1])
+            console.print(table)
+        
     @classmethod
     def list_service_ports(cls, content, service):
         """
@@ -355,7 +391,7 @@ class DDF:
         return str(Path(root_path) / build_path / dockerfile)
     
     @classmethod
-    def read_dockerfile(cls, path = None, service_name = None):
+    def read_dockerfile(cls, path = None, service_name = None, line_numbers = True):
         """
         Read the Dockerfile content from the given path with color syntax by rich.Syntax.
         """
@@ -373,7 +409,7 @@ class DDF:
             if not content:
                 console.print(f"\n🔵 [yellow]Dockerfile is empty:[/] {path}")
                 return None
-            syntax = Syntax(content, "dockerfile", theme="fruity", line_numbers=True)
+            syntax = Syntax(content, "dockerfile", theme="fruity", line_numbers=True if line_numbers else False)
             console.print(f"\n[bold cyan]Dockerfile for service[/] [black on #FFFF00]'{service_name}[/]':\n" if service_name else "[bold cyan]Dockerfile content:[/]\n")
             console.print(syntax)
         except Exception as e:
@@ -381,7 +417,7 @@ class DDF:
             return None
     
     @classmethod
-    def read_entrypoint(cls, service_name, read = True):
+    def read_entrypoint(cls, service_name, read = True, line_numbers = True):
         """
         Read the entrypoint script for a given service.
         Tries to resolve the entrypoint path by analyzing COPY instructions in the Dockerfile.
@@ -485,7 +521,7 @@ class DDF:
             try:
                 with open(entrypoint_path, 'r') as f:
                     script_content = f.read()
-                syntax = Syntax(script_content, "bash", theme="fruity", line_numbers=True)
+                syntax = Syntax(script_content, "bash", theme="fruity", line_numbers=True if line_numbers else False)
                 console.print(f"\n✅ [bold cyan]Entrypoint script for service[/] '[black on #FFFF00]{service_name}[/]':\n")
                 console.print(syntax)
             except Exception as e:
@@ -759,6 +795,8 @@ class DDF:
         parser.add_argument('-ed', '--edit-entrypoint', action='store_true', help="Edit the entrypoint script for the given service")
         parser.add_argument('-rm', '--remove-service', action='store_true', help="Remove the service section for the given service")
         parser.add_argument('-a', '--all', action='store_true', help="Show all services and their ports, devices, and volumes")
+        parser.add_argument('--no-line-numbers', action='store_false', help="Disable line numbers in syntax highlighting")
+        parser.add_argument('-hn', '--hostname', action='store_true', help="Show hostname for the service if available")
         
         args = parser.parse_args()
 
@@ -782,18 +820,20 @@ class DDF:
             else:
                 console.print("\n❌ [white on red]No service specified for listing ports.[/]")
                 sys.exit(1)
+        elif args.hostname:
+            DDF.list_hostnames(content, args.service)
         elif args.port:
             DDF.check_duplicate_port(content, args.port)
         elif args.find or (args.service and args.service.isdigit()):
             DDF.find_port(content, args.find or args.service, compact=False if args.all else True)
         elif args.service and args.detail:
-            DDF.show_service_detail(content, args.service)
+            DDF.show_service_detail(content, args.service, args.no_line_numbers)
         elif args.service and args.list:
             DDF.list_service_ports(content, args.service)
         elif args.service and args.dockerfile:
-            DDF.read_dockerfile(service_name=args.service)
+            DDF.read_dockerfile(service_name=args.service, line_numbers=args.no_line_numbers)
         elif args.service and args.entrypoint:
-            DDF.read_entrypoint(service_name=args.service)
+            DDF.read_entrypoint(service_name=args.service, line_numbers=args.no_line_numbers)
         elif args.service and args.edit_entrypoint:
             DDF.edit_entrypoint(service_name=args.service)
         elif args.service and args.remove_service:
