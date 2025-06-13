@@ -9,10 +9,10 @@ from pydebugger.debug import debug
 import hashlib
 from configset import configset
 from rich_argparse import RichHelpFormatter, _lazy_rich as rr
+from typing import ClassVar
 from rich.syntax import Syntax
 from rich.table import Table
 from rich import box
-from typing import ClassVar
 from typing import List
 import fnmatch
 import subprocess
@@ -48,8 +48,8 @@ class DDF:
     def open_file(cls, file_path):
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"❌ The file {file_path} does not exist.")
-        if not file_path.endswith(('.yml', '.yaml')):
-            raise ValueError(f"❌ The file {file_path} is not a YAML file.")
+        # if not file_path.endswith(('.yml', '.yaml')):
+        #     raise ValueError(f"❌ The file {file_path} is not a YAML file.")
         if not os.access(file_path, os.R_OK):
             raise PermissionError(f"❌ The file {file_path} is not readable.")
         if os.path.getsize(file_path) == 0:
@@ -65,9 +65,14 @@ class DDF:
             return cls._file_cache[file_hash]
 
         # Parse yaml if not in the cache
-        content = yaml.load(file_bytes.decode('utf-8'), Loader=yaml.FullLoader)
-        if not content:
-            raise ValueError(f"❌ The file {file_path} is empty or contains invalid YAML.")
+        try:
+            content = yaml.load(file_bytes.decode('utf-8'), Loader=yaml.FullLoader)
+        except Exception as e:
+            raise ValueError(f"❌ The file {file_path} is not a valid YAML file: {e}")
+
+        if not content or not isinstance(content, dict):
+            raise ValueError(f"❌ The file {file_path} is empty or not a valid YAML mapping.")
+
         cls._file_cache[file_hash] = content
         return content
     
@@ -267,7 +272,7 @@ class DDF:
                 continue
             if not isinstance(value, dict):
                 continue
-            # debug(value = value, debug = 1)
+            # debug(value = value)
             devices = value.get('devices', [])
             if devices:
                 found = True
@@ -396,6 +401,7 @@ class DDF:
         Read the Dockerfile content from the given path with color syntax by rich.Syntax.
         """
         path = cls.get_dockerfile(service_name) if service_name else path
+        # print(f"path: {path}")
         if not path:
             console.print("\n❌ [white on red]No Dockerfile path provided or found.[/]")
             return None
@@ -410,7 +416,7 @@ class DDF:
                 console.print(f"\n🔵 [yellow]Dockerfile is empty:[/] {path}")
                 return None
             syntax = Syntax(content, "dockerfile", theme="fruity", line_numbers=True if line_numbers else False)
-            console.print(f"\n[bold cyan]Dockerfile for service[/] [black on #FFFF00]'{service_name}[/]':\n" if service_name else "[bold cyan]Dockerfile content:[/]\n")
+            console.print(f"\n[bold cyan]Dockerfile for service[/] '[#FFFF00]{service_name}[/]':\n" if service_name else "[bold cyan]Dockerfile content:[/]\n")
             console.print(syntax)
         except Exception as e:
             console.print(f"\n❌ [red]Error reading Dockerfile:[/] {e}")
@@ -488,25 +494,25 @@ class DDF:
         entrypoint_path = None
         if entrypoint_src and entrypoint_src.startswith('./'):
             entrypoint_src_file = entrypoint_src[2:]  # remove ./
-            # debug(entrypoint_src_file = entrypoint_src_file, debug = 1)
+            # debug(entrypoint_src_file = entrypoint_src_file)
             entrypoint_path = os.path.join(base_dir, build_ctx, entrypoint_src_file)
-            # debug(entrypoint_path = entrypoint_path, debug = 1)
+            # debug(entrypoint_path = entrypoint_path)
         elif entrypoint_src:
             entrypoint_path = os.path.join(base_dir, build_ctx, entrypoint_src)
-            # debug(entrypoint_path = entrypoint_path, debug = 1)
+            # debug(entrypoint_path = entrypoint_path)
         else:
             # fallback: try to resolve entrypoint as relative to Dockerfile
-            # debug(dockerfile_path = dockerfile_path, debug = 1)
+            # debug(dockerfile_path = dockerfile_path)
             entrypoint_path = os.path.join(os.path.dirname(dockerfile_path), os.path.basename(entrypoint))
-            # debug(entrypoint_path = entrypoint_path, debug = 1)
+            # debug(entrypoint_path = entrypoint_path)
 
-        # debug(entrypoint = entrypoint, entrypoint_src = entrypoint_src, entrypoint_path = entrypoint_path, debug = 1)
-        # debug(entrypoint_path_is_file = os.path.isfile(entrypoint_path), debug = 1)
+        # debug(entrypoint = entrypoint, entrypoint_src = entrypoint_src, entrypoint_path = entrypoint_path)
+        # debug(entrypoint_path_is_file = os.path.isfile(entrypoint_path))
         # Try absolute path if entrypoint is absolute and not found yet
         if entrypoint_path and not os.path.isfile(entrypoint_path):
             if os.path.isabs(entrypoint):
                 alt_path = os.path.join(base_dir, build_ctx, entrypoint.lstrip('/\\'))
-                # debug(alt_path = alt_path, debug = 1)
+                # debug(alt_path = alt_path)
                 if os.path.isfile(alt_path):
                     entrypoint_path = alt_path
 
@@ -550,23 +556,66 @@ class DDF:
         console.print("\n❌ [white on red]No suitable editor found to edit the entrypoint script.[/]")
     
     @classmethod
-    def edit_dockerfile(cls, path = None, service_name = None):
+    def edit_dockerfile(cls, path=None, service_name=None):
         """
-        Edit the Dockerfile using nvim if exist, if not then nano if exists, if not then vim. use subprocess.run() and check beforehand if the editor is installed.
+        Edit the Dockerfile using nvim, nano, or vim. Uses subprocess.run() and checks if the editor is installed.
+        If the Dockerfile does not exist, create a new one in the build context directory.
+        Handles absolute and relative dockerfile paths correctly, and always uses the build context if specified.
         """
-        path = cls.get_dockerfile(service_name) if service_name else path
-        if not path:
+        dockerfile_path = None
+
+        if service_name:
+            compose_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+            try:
+                content = cls.open_file(compose_file)
+                services = content.get('services', {})
+                service_val = services.get(service_name, {})
+                build = service_val.get('build', {})
+                build_ctx = build.get('context', '.')
+                dockerfile_name = build.get('dockerfile', 'Dockerfile')
+                root_path = CONFIG.get_config('docker-compose', 'root_path')
+                if root_path and os.path.isdir(root_path):
+                    base_dir = root_path
+                else:
+                    base_dir = os.path.dirname(os.path.abspath(compose_file))
+                # --- FIXED PATH LOGIC ---
+                # If build_ctx is absolute, use as is, else join with base_dir
+                if os.path.isabs(build_ctx):
+                    build_dir = build_ctx
+                else:
+                    build_dir = os.path.normpath(os.path.join(base_dir, build_ctx))
+                # If dockerfile_name is absolute, use as is, else join with build_dir
+                if os.path.isabs(dockerfile_name):
+                    dockerfile_path = dockerfile_name
+                else:
+                    dockerfile_path = os.path.normpath(os.path.join(build_dir, dockerfile_name))
+            except Exception as e:
+                console.print(f"\n❌ [red]Error resolving Dockerfile path:[/] {e}")
+                return None
+        else:
+            dockerfile_path = path
+
+        if not dockerfile_path:
             console.print("\n❌ [white on red]No Dockerfile path provided or found.[/]")
             return None
-        if not os.path.isfile(path):
-            console.print(f"\n❌ [white on red]Dockerfile not found:[/] {path}")
-            return None
-        
+
+        # If Dockerfile does not exist, create an empty one in the build context
+        if not os.path.isfile(dockerfile_path):
+            try:
+                os.makedirs(os.path.dirname(dockerfile_path), exist_ok=True)
+                with open(dockerfile_path, 'w') as f:
+                    f.write("# New Dockerfile\n")
+                console.print(f"\n[bold yellow]Created new Dockerfile at:[/] {dockerfile_path}")
+            except Exception as e:
+                console.print(f"\n❌ [red]Error creating Dockerfile:[/] {e}")
+                return None
+
+        # Select editor
         editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
         for editor in editors:
             if shutil.which(editor):
                 try:
-                    subprocess.run([editor, path], check=True)
+                    subprocess.run([editor, dockerfile_path], check=True)
                     return
                 except subprocess.CalledProcessError as e:
                     console.print(f"\n❌ [red]Error launching {editor}:[/] {e}")
@@ -579,7 +628,7 @@ class DDF:
         Edit a service section in the YAML file using nvim, nano, or vim.
         Only the selected service section will be edited and replaced back.
         """
-        
+        is_changed = True
         file_path = file_path or CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
         
         if not service_name:
@@ -630,6 +679,9 @@ class DDF:
             with tempfile.NamedTemporaryFile('w+', delete=False, suffix='.yml') as tf:
                 temp_path = tf.name
                 yaml.dump({svc: svc_data}, tf, sort_keys=False, allow_unicode=True)
+            # --- Tambahkan hash sebelum edit
+            with open(temp_path, 'rb') as f:
+                before_hash = hashlib.sha256(f.read()).hexdigest()
             # Select Editor
             editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
             for editor in editors:
@@ -649,8 +701,16 @@ class DDF:
                 return
             # After editing, reread and replace the section
             try:
-                with open(temp_path, 'r') as tf:
-                    edited = yaml.safe_load(tf)
+                with open(temp_path, 'rb') as tf:
+                    after_bytes = tf.read()
+                    after_hash = hashlib.sha256(after_bytes).hexdigest()
+                    tf.seek(0)
+                    edited = yaml.safe_load(after_bytes.decode())
+                if before_hash == after_hash:
+                    is_changed = False
+                    console.print(f"ℹ️ [yellow]No changes made to service '{svc}'.[/]")
+                    os.unlink(temp_path)
+                    continue
                 if not edited or svc not in edited:
                     console.print(f"❌ [red]No valid service section found after editing. Skipped update for[/] [bold #FFFF00]'{svc}'.[/]")
                     os.unlink(temp_path)
@@ -660,17 +720,103 @@ class DDF:
             except Exception as e:
                 console.print(f"❌ [red]Error reading edited service section:[/] {e}")
                 os.unlink(temp_path)
-                # Stop the main file update process if error parsing yaml
                 console.print(f"⚠️ [bold red]YAML not updated due to error above. Please fix indentation (use spaces, not tabs).[/bold red]")
                 return  
+
+        if is_changed:
+            # Save back to the original file
+            try:
+                with open(file_path, 'w') as f:
+                    yaml.dump(content, f, sort_keys=False, allow_unicode=True)
+                console.print(f"✅ [bold green]Service section(s) updated successfully in {file_path}[/bold green]")
+            except Exception as e:
+                console.print(f"❌ [red]Error writing YAML file:[/] {e}")
+    
+    @classmethod
+    def set_dockerfile(cls, service_name, dockerfile_path):
+        """
+        Set the Dockerfile path for a given service in the docker-compose.yml.
+        If the service does not exist, it will be created.
+        """
+        file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not os.path.isfile(file_path):
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {file_path}")
+            return
+        
+        # Load YAML
+        try:
+            with open(file_path, 'r') as f:
+                content = yaml.safe_load(f)
+        except Exception as e:
+            console.print(f"\n❌ [red]Error loading YAML:[/] {e}")
+            return
+
+        # Ensure content is a dict
+        if not isinstance(content, dict):
+            content = {}
+
+        # Ensure 'services' is a dict
+        if 'services' not in content or not isinstance(content['services'], dict):
+            content['services'] = {}
+
+        services = content['services']
+        if service_name not in services or not isinstance(services[service_name], dict):
+            services[service_name] = {}
+
+        # Set Dockerfile path
+        if 'build' not in services[service_name] or not isinstance(services[service_name]['build'], dict):
+            services[service_name]['build'] = {}
+        services[service_name]['build']['dockerfile'] = dockerfile_path
 
         # Save back to the original file
         try:
             with open(file_path, 'w') as f:
                 yaml.dump(content, f, sort_keys=False, allow_unicode=True)
-            console.print(f"✅ [bold green]Service section(s) updated successfully in {file_path}[/bold green]")
+            console.print(f"\n✅ [bold green]Dockerfile path set successfully for service '{service_name}' in {file_path}[/bold green]")
         except Exception as e:
-            console.print(f"❌ [red]Error writing YAML file:[/] {e}")
+            console.print(f"\n❌ [red]Error writing YAML file:[/] {e}")
+    
+    @classmethod
+    def new_service(cls, service_name, service_config=None):
+        """
+        Create a new service section in the YAML file.
+        If service exists, it will not be overwritten.
+        If service_config is provided, it will be used as the initial configuration.
+        After creation, open the new service in the editor for user to fill in.
+        """
+        file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not os.path.isfile(file_path):
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {file_path}")
+            return
+
+        try:
+            content = cls.open_file(file_path)
+        except Exception as e:
+            console.print(f"\n❌ [red]Error loading YAML:[/] {e}")
+            return
+
+        services = content.get('services', {})
+        if service_name in services:
+            console.print(f"\n ⚠️ [yellow]Service '{service_name}' already exists.[/]")
+            return
+
+        # Add the new service
+        if not service_config:
+            service_config = {}
+        services[service_name] = service_config
+        content['services'] = services
+
+        # Save back to the file
+        try:
+            with open(file_path, 'w') as f:
+                yaml.dump(content, f, sort_keys=False, allow_unicode=True)
+            console.print(f"\n✅ [bold green]New service '{service_name}' created successfully in {file_path}[/bold green]")
+        except Exception as e:
+            console.print(f"\n❌ [red]Error writing YAML file:[/] {e}")
+            return
+
+        # Open the new service in the editor for user to fill in
+        cls.edit_service(file_path=file_path, service_name=service_name)
         
     @classmethod
     def copy_service(cls, service_name):
@@ -788,6 +934,7 @@ class DDF:
         # parser.add_argument('-r', '--dockerfile', metavar='SERVICE', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-r', '--dockerfile', action = 'store_true', help="Read and display the Dockerfile for the given service")
         parser.add_argument('-e', '--edit-dockerfile', action='store_true', help="Edit the Dockerfile for the given service using nvim, nano, or vim")
+        parser.add_argument('-sd', '--set-dockerfile', metavar='DOCKERFILE_PATH', help="Set the Dockerfile path for the given service")
         parser.add_argument('-E', '--edit-service', action='store_true', help="Edit the service section for the given service")
         parser.add_argument('-dd', '--duplicate-service', metavar='NEW_SERVICE_NAME', help="Duplicate the service section with a new service name")
         parser.add_argument('-cs', '--copy-service', help = "copy service section to clipboar", action = 'store_true')
@@ -795,9 +942,24 @@ class DDF:
         parser.add_argument('-ed', '--edit-entrypoint', action='store_true', help="Edit the entrypoint script for the given service")
         parser.add_argument('-rm', '--remove-service', action='store_true', help="Remove the service section for the given service")
         parser.add_argument('-a', '--all', action='store_true', help="Show all services and their ports, devices, and volumes")
-        parser.add_argument('--no-line-numbers', action='store_false', help="Disable line numbers in syntax highlighting")
+        parser.add_argument('-nl', '--no-line-numbers', action='store_false', help="Disable line numbers in syntax highlighting")
         parser.add_argument('-hn', '--hostname', action='store_true', help="Show hostname for the service if available")
+        parser.add_argument('-n', '--new', action='store_true', help="Create a new service section in the YAML file")
         
+        
+        if len(sys.argv) == 1:
+            try:
+                content = DDF.open_file(default_file)
+                DDF.find_duplicate_port(content)
+            except Exception as e:
+                console.print(f"\n❌ [red]Error:[/] {e}")
+                sys.exit(1)
+            sys.exit(1)
+            
+        if '-h' in sys.argv or '--help' in sys.argv:
+            parser.print_help()
+            sys.exit(0)
+            
         args = parser.parse_args()
 
         if not os.path.isfile(args.file):
@@ -814,47 +976,64 @@ class DDF:
             DDF.list_service_devices(content, args.service)
         if args.volumes:
             DDF.list_service_volumes(content, args.service)
-        elif args.list_port:
+        if args.list_port:
             if args.service:
                 DDF.list_service_ports(content, args.service)
             else:
                 console.print("\n❌ [white on red]No service specified for listing ports.[/]")
                 sys.exit(1)
-        elif args.hostname:
+        if args.hostname:
             DDF.list_hostnames(content, args.service)
-        elif args.port:
+        if args.port:
             DDF.check_duplicate_port(content, args.port)
-        elif args.find or (args.service and args.service.isdigit()):
+        if args.find or (args.service and args.service.isdigit()):
             DDF.find_port(content, args.find or args.service, compact=False if args.all else True)
-        elif args.service and args.detail:
+        if args.service and args.detail:
             DDF.show_service_detail(content, args.service, args.no_line_numbers)
-        elif args.service and args.list:
+        if args.service and args.list:
             DDF.list_service_ports(content, args.service)
-        elif args.service and args.dockerfile:
+        if args.service and args.dockerfile:
             DDF.read_dockerfile(service_name=args.service, line_numbers=args.no_line_numbers)
-        elif args.service and args.entrypoint:
+        if args.service and args.entrypoint:
             DDF.read_entrypoint(service_name=args.service, line_numbers=args.no_line_numbers)
-        elif args.service and args.edit_entrypoint:
+        if args.service and args.edit_entrypoint:
             DDF.edit_entrypoint(service_name=args.service)
-        elif args.service and args.remove_service:
+        if args.service and args.remove_service:
             DDF.remove_service(args.service)
-        elif args.service and args.edit_dockerfile:
+        if args.service and args.edit_dockerfile:
             DDF.edit_dockerfile(service_name=args.service)
-        elif args.list_service_name:
+        if args.service and args.set_dockerfile:
+            if not args.set_dockerfile:
+                console.print("\n❌ [white on red]No Dockerfile path provided for setting.[/]")
+                sys.exit(1)
+            DDF.set_dockerfile(args.service, args.set_dockerfile)
+            if args.edit_dockerfile:
+                DDF.edit_dockerfile(service_name=args.service)
+            elif args.edit_service:
+                DDF.edit_service(file_path=args.file, service_name=args.service)
+            elif args.read_dockerfile:
+                DDF.read_dockerfile(service_name=args.service, line_numbers=args.no_line_numbers)
+        if args.list_service_name:
             DDF.list_service_names(content)
-        elif args.service and args.edit_service:
+        if args.service and args.edit_service:
             DDF.edit_service(file_path=args.file, service_name=args.service)
-        elif args.service and args.copy_service:
+        if args.new:
+            if not args.service:
+                console.print("\n❌ [white on red]No service name provided for new service.[/]")
+                sys.exit(1)
+            DDF.new_service(args.service)
+        if args.service and args.copy_service:
             if not args.service:
                 console.print("\n❌ [white on red]No service name provided for copying.[/]")
                 sys.exit(1)
             DDF.copy_service(args.service)
-        elif args.duplicate_service:
+        if args.duplicate_service:
             if not args.service:
                 console.print("\n❌ [white on red]No service name provided for duplication.[/]")
                 sys.exit(1)
             DDF.duplicate_server(args.service, args.duplicate_service)
-        else:
+        #if only service is provided, check for duplicate ports
+        if args.service and not (args.list or args.detail or args.dockerfile or args.entrypoint or args.edit_dockerfile or args.edit_entrypoint or args.set_dockerfile or args.edit_service or args.remove_service):
             DDF.find_duplicate_port(content, target_service=args.service)
 
 if __name__ == '__main__':
