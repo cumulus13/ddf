@@ -45,6 +45,7 @@ class CustomRichHelpFormatter(RichHelpFormatter):
 class DDF:
 
     _file_cache = {}
+    THEME = "fruity"
 
     @classmethod
     def open_file(cls, file_path):
@@ -832,7 +833,85 @@ class DDF:
             console.print(f"ℹ️ [yellow]No changes made to file '{file_path}'.[/]")
         else:
             console.print(f"✅ [green]File '{file_path}' edited successfully.[/]")
-    
+            
+    @classmethod
+    def read_file(cls, filename, service_name, line_numbers=True):
+        """
+        Read and display a specific file referenced in a COPY line in the Dockerfile for a service.
+        Shows syntax highlighting if possible.
+        """
+        dockerfile_path = cls.get_dockerfile(service_name)
+        if not dockerfile_path or not os.path.isfile(dockerfile_path):
+            console.print(f"\n❌ [red]Dockerfile for service '{service_name}' not found.[/]")
+            return
+
+        # Find COPY line containing filename
+        copy_line = None
+        with open(dockerfile_path, 'r') as f:
+            for line in f:
+                if line.strip().startswith('COPY') and filename in line:
+                    copy_line = line.strip()
+                    break
+
+        if not copy_line:
+            console.print(f"\n❌ [yellow]No COPY line containing '{filename}' found in Dockerfile for '{service_name}'.[/]")
+            return
+
+        # Get source path from COPY
+        parts = copy_line.split()
+        if len(parts) < 3:
+            console.print(f"\n❌ [yellow]Malformed COPY line: {copy_line}[/]")
+            return
+        src_path = parts[1]
+        if src_path.startswith('./'):
+            src_path = src_path[2:]
+        # Resolve path relative to build context
+        compose_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        base_dir = os.path.dirname(os.path.abspath(compose_file))
+        content = cls.open_file(compose_file)
+        services = content.get('services', {})
+        service_val = services.get(service_name, {})
+        build_ctx = service_val.get('build', {}).get('context', '.')
+        file_path = os.path.normpath(os.path.join(base_dir, build_ctx, src_path))
+
+        if not os.path.isfile(file_path):
+            console.print(f"\n❌ [yellow]File not found: {file_path}[/]")
+            return
+
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                file_content = f.read()
+            # Guess syntax from extension
+            ext = os.path.splitext(file_path)[1].lower()
+            syntax_map = {
+                '.sh': 'bash',
+                '.py': 'python',
+                '.yml': 'yaml',
+                '.yaml': 'yaml',
+                '.conf': 'ini',
+                '.json': 'json',
+                '.js': 'javascript',
+                '.ts': 'typescript',
+                '.env': 'bash',
+                '.txt': 'text',
+                '.ini': 'ini',
+                '.md': 'markdown',
+                '.Dockerfile': 'dockerfile',
+                'dockerfile': 'dockerfile',
+            }
+            syntax_name = syntax_map.get(ext, None)
+            if not syntax_name and 'dockerfile' in file_path.lower():
+                syntax_name = 'dockerfile'
+            if syntax_name:
+                syntax = Syntax(file_content, syntax_name, theme="fruity", line_numbers=line_numbers)
+                console.print(f"\n[bold cyan]File:[/] [#FFFF00]{file_path}[/]\n")
+                console.print(syntax)
+            else:
+                console.print(f"\n[bold cyan]File:[/] [#FFFF00]{file_path}[/]\n")
+                console.print(file_content)
+        except Exception as e:
+            console.print(f"\n❌ [red]Error reading file:[/] {e}")
+            
     @classmethod
     def set_dockerfile(cls, service_name, dockerfile_path):
         """
@@ -1138,7 +1217,8 @@ class DDF:
         parser.add_argument('-F', '--filter', action='store', help="Filter services by name or pattern", nargs='*', default=[])
         parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {cls.get_version()}', help="Show the version of ddf module")
         parser.add_argument('-ef', '--edit-file', metavar='FILENAME', help="Edit a specific file in the Dockerfile COPY command", type=str)
-        
+        parser.add_argument('-rf', '--read-file', metavar='FILENAME', help="Read and display a specific file in the Dockerfile COPY command", type=str)
+        parser.add_argument('--theme', default='fruity', help="Set the theme for syntax highlighting (default: fruity)")
         
         if len(sys.argv) == 1:
             try:
@@ -1165,6 +1245,9 @@ class DDF:
             console.print(f"\n❌ [red]Error:[/] {e}")
             sys.exit(1)
 
+        if args.theme:
+            # console.set_theme(args.theme)
+            cls.THEME = args.theme
         if args.device:
             DDF.list_service_devices(content, args.service)
         if args.volumes:
@@ -1211,6 +1294,11 @@ class DDF:
                 console.print("\n❌ [white on red]No filename provided for editing.[/]")
                 sys.exit(1)
             DDF.edit_file(args.edit_file, args.service)
+        if args.service and args.read_file:
+            if not args.read_file:
+                console.print("\n❌ [white on red]No filename provided for reading.[/]")
+                sys.exit(1)
+            DDF.read_file(args.read_file, args.service, line_numbers=args.no_line_numbers)
         if args.list_service_name:
             DDF.list_service_names(content, args.filter)
         if args.service and args.edit_service:
