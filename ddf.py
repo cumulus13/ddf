@@ -10,7 +10,6 @@ import hashlib
 from configset import configset
 from rich_argparse import RichHelpFormatter, _lazy_rich as rr
 from typing import ClassVar
-from rich.syntax import Syntax
 from rich.table import Table
 from rich import box
 from typing import List
@@ -21,6 +20,9 @@ import shutil
 import clipboard
 import tempfile
 import shlex
+import re
+# import importlib
+import importlib.util
 
 console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
@@ -301,8 +303,9 @@ class DDF:
                 continue
             volumes = value.get('volumes', [])
             if volumes:
+                console.print(f"\n🔧 [bold cyan]Volumes for service[/] [#FFFF00]'{svc}'[/]:\n")
                 found = True
-                console.print(f"[bold cyan]{svc}:[/]")
+                console.print(f"[white on #5500FF italic underline]{svc}[/]:")
                 console.print("  volumes:")
                 for vol in volumes:
                     vo = vol.split(':')
@@ -366,15 +369,38 @@ class DDF:
             console.print(f"  - [green]{port}[/]")
     
     @classmethod
-    def list_service_names(cls, content):
+    def list_service_names(cls, content, filter: list = []):
+        """
+            filter support regex, wildchar, or substring matching.
+        """
         services = content.get('services', {})
         if not services:
             console.print("\n❌ [yellow]No services found in the YAML file.[/]")
             return
-        console.print("\n🍁 [bold #FFFF00]Available service names:[/]\n")
-        for service in services.keys():
-            console.print(f"  - [bold #00FFFF]{service}[/]")
-    
+        service_names = list(services.keys())
+        if filter:
+            filtered = set()
+            for f in filter:
+                # Try regex
+                try:
+                    regex = re.compile(f)
+                    filtered.update([svc for svc in service_names if regex.search(svc)])
+                    continue
+                except re.error:
+                    pass
+                # Wildcard (fnmatch)
+                import fnmatch
+                filtered.update([svc for svc in service_names if fnmatch.fnmatch(svc, f)])
+                # Substring
+                filtered.update([svc for svc in service_names if f in svc])
+            service_names = sorted(filtered)
+        if service_names:
+            console.print("\n🍁 [bold #FFFF00]Available service names:[/]\n")
+            for service in service_names:
+                console.print(f"  - [bold #00FFFF]{service}[/]")
+        else:
+            console.print("\n❌ [yellow]No matching services found.[/]")
+            
     @classmethod
     def get_dockerfile(cls, service_name):
         """
@@ -733,6 +759,81 @@ class DDF:
                 console.print(f"❌ [red]Error writing YAML file:[/] {e}")
     
     @classmethod
+    def edit_file(cls, filename, service_name):
+        """
+        Edit a spesific file by line containt 'COPY' in the Dockerfile.
+        check relative path before if is file or not then edit
+        if not or any not then show warning
+        if success after edit then show info too but,
+        if edit and not changed then show info too
+        """
+        dockerfile_path = cls.get_dockerfile(service_name)
+        if not dockerfile_path or not os.path.isfile(dockerfile_path):
+            console.print(f"\n❌ [red]Dockerfile for service '{service_name}' not found.[/]")
+            return
+
+        # Cari baris COPY yang mengandung filename
+        copy_line = None
+        with open(dockerfile_path, 'r') as f:
+            for line in f:
+                if line.strip().startswith('COPY') and filename in line:
+                    copy_line = line.strip()
+                    break
+
+        if not copy_line:
+            console.print(f"\n❌ [yellow]No COPY line containing '{filename}' found in Dockerfile for '{service_name}'.[/]")
+            return
+
+        # Ambil path sumber dari COPY
+        parts = copy_line.split()
+        if len(parts) < 3:
+            console.print(f"\n❌ [yellow]Malformed COPY line: {copy_line}[/]")
+            return
+        src_path = parts[1]
+        # Hilangkan './' jika ada
+        if src_path.startswith('./'):
+            src_path = src_path[2:]
+        # Resolve path relatif terhadap build context
+        compose_file = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        base_dir = os.path.dirname(os.path.abspath(compose_file))
+        content = cls.open_file(compose_file)
+        services = content.get('services', {})
+        service_val = services.get(service_name, {})
+        build_ctx = service_val.get('build', {}).get('context', '.')
+        file_path = os.path.normpath(os.path.join(base_dir, build_ctx, src_path))
+
+        if not os.path.isfile(file_path):
+            console.print(f"\n❌ [yellow]File to edit not found: {file_path}[/]")
+            return
+
+        # Hash sebelum edit
+        with open(file_path, 'rb') as f:
+            before_hash = hashlib.sha256(f.read()).hexdigest()
+
+        # Pilih editor
+        editors = CONFIG.get_config_as_list('editor', 'names') or [r'c:\msys64\usr\bin\nano.exe', 'nvim', 'vim']
+        for editor in editors:
+            if shutil.which(editor):
+                try:
+                    subprocess.run([editor, file_path], check=True)
+                    break
+                except subprocess.CalledProcessError as e:
+                    console.print(f"❌ [red]Error launching {editor}:[/] {e}")
+                    continue
+        else:
+            console.print("\n❌ [white on red]No suitable editor found to edit the file.[/]")
+            return
+
+        # Hash setelah edit
+        with open(file_path, 'rb') as f:
+            after_hash = hashlib.sha256(f.read()).hexdigest()
+
+        if before_hash == after_hash:
+            console.print(f"ℹ️ [yellow]No changes made to file '{file_path}'.[/]")
+        else:
+            console.print(f"✅ [green]File '{file_path}' edited successfully.[/]")
+    
+    @classmethod
     def set_dockerfile(cls, service_name, dockerfile_path):
         """
         Set the Dockerfile path for a given service in the docker-compose.yml.
@@ -850,6 +951,66 @@ class DDF:
         console.print(f"\n✅ [bold green]Service '{service_name}' copied to clipboard successfully.[/]")
     
     @classmethod
+    def rename_service(cls, old_service_name, new_service_name):
+        """
+        Rename a service section in the YAML file.
+        If the new service name already exists, it will not overwrite it.
+        """
+        file_path = CONFIG.get_config('docker-compose', 'file') or r"c:\PROJECTS\docker-compose.yml"
+        if not os.path.isfile(file_path):
+            console.print(f"\n❌ [white on red]YAML file not found:[/] {file_path}")
+            return
+
+        try:
+            content = cls.open_file(file_path)
+        except Exception as e:
+            console.print(f"\n❌ [red]Error loading YAML:[/] {e}")
+            return
+
+        services = content.get('services', {})
+        if old_service_name not in services:
+            console.print(f"\n❌ [yellow]Service '{old_service_name}' not found.[/]")
+            return
+        if new_service_name in services:
+            console.print(f"\n❌ [yellow]Service '{new_service_name}' already exists. Cannot rename.[/]")
+            return
+
+        # Rename the service
+        services[new_service_name] = services.pop(old_service_name)
+        content['services'] = services
+
+        # Save back to the file
+        try:
+            with open(file_path, 'w') as f:
+                yaml.dump(content, f, sort_keys=False, allow_unicode=True)
+            console.print(f"\n✅ [bold green]Service '{old_service_name}' renamed to '{new_service_name}' successfully in {file_path}[/bold green]")
+        except Exception as e:
+            console.print(f"\n❌ [red]Error writing YAML file:[/] {e}")
+    
+    @classmethod
+    def copy_dockerfile(cls, service_name):
+        """
+        Copy the Dockerfile content to the clipboard for a given service.
+        If the Dockerfile does not exist, it will not copy anything.
+        """
+        dockerfile_path = cls.get_dockerfile(service_name)
+        if not dockerfile_path:
+            console.print(f"\n❌ [white on red]No Dockerfile found for service '{service_name}'.[/]")
+            return
+
+        if not os.path.isfile(dockerfile_path):
+            console.print(f"\n❌ [white on red]Dockerfile not found:[/] {dockerfile_path}")
+            return
+
+        try:
+            with open(dockerfile_path, 'r') as f:
+                content = f.read()
+            clipboard.copy(content)
+            console.print(f"\n✅ [#FFFF00]Dockerfile content for service[/] [#00FFFF]'{service_name}'[/] [#FFFF00]copied to clipboard successfully.[/]")
+        except Exception as e:
+            console.print(f"\n❌ [red]Error reading Dockerfile:[/] [white on red]{e}[/]")
+    
+    @classmethod
     def duplicate_server(cls, service_name, new_service_name):
         """
         Duplicate a service section in the YAML file.
@@ -912,9 +1073,36 @@ class DDF:
         try:
             with open(file_path, 'w') as f:
                 yaml.dump(content, f, sort_keys=False, allow_unicode=True)
-            console.print(f"\n⚠️ [bold green]Service '{service_name}' removed successfully from {file_path}[/bold green]")
+            console.print(f"\n ⚠️ [bold green]Service '{service_name}' removed successfully from {file_path}[/bold green]")
         except Exception as e:
-            console.print(f"\n❌ [red]Error writing YAML file:[/] {e}")
+            console.print(f"\n ❌ [red]Error writing YAML file:[/] {e}")
+    
+    @classmethod
+    def get_version(cls):
+        """
+        Get the version of the ddf module.
+        Version is taken from the __version__.py file if it exists.
+        The content of __version__.py should be:
+        version = "0.33"
+        """
+        try:
+            version_file = Path(__file__).parent / "__version__.py"
+            if version_file.is_file():
+                with open(version_file, "r") as f:
+                    for line in f:
+                        if line.strip().startswith("version"):
+                            parts = line.split("=")
+                            if len(parts) == 2:
+                                return parts[1].strip().strip('"').strip("'")
+        except Exception as e:
+            debug(error=str(e))
+
+        return "UNKNOWN VERSION"
+        
+    @classmethod
+    def show_debug(cls):
+        os.environ.update({'DEBUG':'1'})
+        os.environ.update({'DEBUG_SERVER':'1'})
     
     @classmethod
     def usage(cls):
@@ -938,6 +1126,8 @@ class DDF:
         parser.add_argument('-E', '--edit-service', action='store_true', help="Edit the service section for the given service")
         parser.add_argument('-dd', '--duplicate-service', metavar='NEW_SERVICE_NAME', help="Duplicate the service section with a new service name")
         parser.add_argument('-cs', '--copy-service', help = "copy service section to clipboar", action = 'store_true')
+        parser.add_argument('-rn', '--rename-service', metavar='NEW_SERVICE_NAME', help="Rename the service section to a new name")
+        parser.add_argument('-cd', '--copy-dockerfile', action='store_true', help="Copy the Dockerfile content to clipboard")
         parser.add_argument('-en', '--entrypoint', action='store_true', help="Read and display the entrypoint script for the given service")
         parser.add_argument('-ed', '--edit-entrypoint', action='store_true', help="Edit the entrypoint script for the given service")
         parser.add_argument('-rm', '--remove-service', action='store_true', help="Remove the service section for the given service")
@@ -945,6 +1135,9 @@ class DDF:
         parser.add_argument('-nl', '--no-line-numbers', action='store_false', help="Disable line numbers in syntax highlighting")
         parser.add_argument('-hn', '--hostname', action='store_true', help="Show hostname for the service if available")
         parser.add_argument('-n', '--new', action='store_true', help="Create a new service section in the YAML file")
+        parser.add_argument('-F', '--filter', action='store', help="Filter services by name or pattern", nargs='*', default=[])
+        parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {cls.get_version()}', help="Show the version of ddf module")
+        parser.add_argument('-ef', '--edit-file', metavar='FILENAME', help="Edit a specific file in the Dockerfile COPY command", type=str)
         
         
         if len(sys.argv) == 1:
@@ -1013,8 +1206,13 @@ class DDF:
                 DDF.edit_service(file_path=args.file, service_name=args.service)
             elif args.read_dockerfile:
                 DDF.read_dockerfile(service_name=args.service, line_numbers=args.no_line_numbers)
+        if args.service and args.edit_file:
+            if not args.edit_file:
+                console.print("\n❌ [white on red]No filename provided for editing.[/]")
+                sys.exit(1)
+            DDF.edit_file(args.edit_file, args.service)
         if args.list_service_name:
-            DDF.list_service_names(content)
+            DDF.list_service_names(content, args.filter)
         if args.service and args.edit_service:
             DDF.edit_service(file_path=args.file, service_name=args.service)
         if args.new:
@@ -1027,13 +1225,26 @@ class DDF:
                 console.print("\n❌ [white on red]No service name provided for copying.[/]")
                 sys.exit(1)
             DDF.copy_service(args.service)
+        elif args.copy_dockerfile:
+            if not args.service:
+                console.print("\n❌ [white on red]No service name provided for copying Dockerfile.[/]")
+                sys.exit(1)
+            DDF.copy_dockerfile(args.service)
+        elif args.rename_service:
+            if not args.service:
+                console.print("\n❌ [white on red]No service name provided for copying Dockerfile.[/]")
+                sys.exit(1)
+            DDF.rename_service(args.service, args.rename_service)
         if args.duplicate_service:
             if not args.service:
                 console.print("\n❌ [white on red]No service name provided for duplication.[/]")
                 sys.exit(1)
             DDF.duplicate_server(args.service, args.duplicate_service)
         #if only service is provided, check for duplicate ports
-        if args.service and not (args.list or args.detail or args.dockerfile or args.entrypoint or args.edit_dockerfile or args.edit_entrypoint or args.set_dockerfile or args.edit_service or args.remove_service):
+        debug(_option_string_actions = parser.__dict__.get('_option_string_actions').keys())
+        debug(len_filter__option_string_actions = len(list(filter(lambda k: k in parser.__dict__.get('_option_string_actions').keys(), [i for i in sys.argv[1:]]))))
+        # if args.service and not (args.list or args.detail or args.dockerfile or args.entrypoint or args.edit_dockerfile or args.edit_entrypoint or args.set_dockerfile or args.edit_service or args.remove_service or args.copy_service or args.copy_dockerfile or args.duplicate_service):
+        if len(list(filter(lambda k: k in parser.__dict__.get('_option_string_actions').keys(), [i for i in sys.argv[1:]]))) == 0 and args.service:
             DDF.find_duplicate_port(content, target_service=args.service)
 
 if __name__ == '__main__':
