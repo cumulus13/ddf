@@ -28,6 +28,18 @@ console = Console()
 CONFIGFILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'ddf.ini')
 CONFIG = configset(CONFIGFILE)
 
+if CONFIG.get_config('docker', 'host'):
+    os.environ['DOCKER_HOST'] = CONFIG.get_config('docker', 'host')
+    if not ":" in os.environ['DOCKER_HOST']:
+        # If no port is specified, default to 2375 for TCP or 2376 for TLS
+        os.environ['DOCKER_HOST'] += ':' + CONFIG.get_config('docker', 'port', '2375') if not CONFIG.get_config('docker', 'tls_verify') else ':' + CONFIG.get_config('docker', 'tls_port', '2376')
+if CONFIG.get_config('docker', 'tls_verify'):
+    os.environ['DOCKER_TLS_VERIFY'] = CONFIG.get_config('docker', 'tls_verify')
+if CONFIG.get_config('docker', 'cert_path'):
+    os.environ['DOCKER_CERT_PATH'] = CONFIG.get_config('docker', 'cert_path')
+if CONFIG.get_config('docker', 'api_version'):
+    os.environ['DOCKER_API_VERSION'] = CONFIG.get_config('docker', 'api_version')
+
 class CustomRichHelpFormatter(RichHelpFormatter):
     """A custom RichHelpFormatter with modified styles."""
 
@@ -1287,7 +1299,7 @@ class DDF:
                 DDF.edit_dockerfile(service_name=args.service)
             elif args.edit_service:
                 DDF.edit_service(file_path=args.file, service_name=args.service)
-            elif args.read_dockerfile:
+            elif args.dockerfile:
                 DDF.read_dockerfile(service_name=args.service, line_numbers=args.no_line_numbers)
         if args.service and args.edit_file:
             if not args.edit_file:
