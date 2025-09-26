@@ -1,0 +1,37 @@
+# ===========================
+# Auth Service (FastAPI)
+# ===========================
+FROM python:3.12-alpine
+
+ARG MAIN_REPO=""
+ENV MAIN_REPO=$MAIN_REPO
+# Install dependencies
+RUN apk add --no-cache gcc musl-dev libffi-dev openssl-dev git
+
+# Set workdir
+WORKDIR /app
+
+RUN if [ -n "$MAIN_REPO" ]; then \
+         git clone "$MAIN_REPO"; \
+    else \
+         git clone https://github.com/cumulus13/auth-server; \
+    fi
+
+# Copy requirements 
+#COPY setup.py projects.toml README.md ./
+#COPY auth_server ./auth_server
+
+# Install pip deps
+RUN pip install --no-cache-dir fastapi uvicorn pyjwt cryptography requests richcolorlog
+
+# Copy keys (optional: runtime mount volume )
+#COPY keys ./keys
+
+# Expose port
+EXPOSE 8910
+
+WORKDIR /app/auth-server
+# Start server (user uvicorn)
+#CMD ["uvicorn", "auth_server.server:app", "--host", "0.0.0.0", "--port", "8910", "--ssl-keyfile", "auth_server/certs/server.key", "--ssl-certfile", "auth_server/certs/server.crt"]
+
+CMD ["uvicorn", "auth_server.server:app", "--host", "0.0.0.0", "--port", "8910", "--ssl-keyfile", "/keys/server.key", "--ssl-certfile", "/keys/server.crt"]

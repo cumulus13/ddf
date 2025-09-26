@@ -333,23 +333,29 @@ class DDF:
                 continue
             matched_ports = []
             for p in ports:
-                p1, p2 = p.split(":")
-                if p1.strip() == port or p2.strip() == port:
-                    matched_ports.append(f"[white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
-                    # matched_ports.append(f"{p1}:{p2}")
+                try:
+                    p1, p2 = str(p).split(":")
+                    if p1.strip() == port or p2.strip() == port:
+                        matched_ports.append(f"[white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
+                        # matched_ports.append(f"{p1}:{p2}")
+                except Exception as e:
+                    pass
             if matched_ports:
                 found_any = True
                 # Format default (lama): tampilkan semua port
                 output_lines.append(f"- [bold #FFFF00]{service}[/]:")
                 output_lines.append("  ports:")
                 for p in ports:
-                    p1, p2 = p.split(":")
-                    p2 = p2.replace("/udp", f"[bold #FF00FF]/udp[/]").replace("/tcp", f"[bold #FF00FF]/tcp[/]")
-                    if p1.strip() == port or p2.strip() == port:
-                        output_lines.append(f"    - [white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
-                    else:
-                        # output_lines.append(f"    - {p}")
-                        output_lines.append(f"    - [#00FFFF]{p1}[/]:[#00FFFF]{p2}[/]")
+                    try:
+                        p1, p2 = p.split(":")
+                        p2 = p2.replace("/udp", f"[bold #FF00FF]/udp[/]").replace("/tcp", f"[bold #FF00FF]/tcp[/]")
+                        if p1.strip() == port or p2.strip() == port:
+                            output_lines.append(f"    - [white on #550000]{p1}[/]:[white on #550000]{p2}[/]")
+                        else:
+                            # output_lines.append(f"    - {p}")
+                            output_lines.append(f"    - [#00FFFF]{p1}[/]:[#00FFFF]{p2}[/]")
+                    except Exception as e:
+                        pass
                 # Format compact: hanya port yang cocok
                 img = value.get('image', '')
                 ports_str = ', '.join([f'"{x}"' for x in matched_ports])
@@ -379,7 +385,7 @@ class DDF:
             ports = value.get('ports', [])
             for p in ports:
                 # Support format host:container or just port
-                parts = p.split(":")
+                parts = str(p).split(":")
                 # if port in [x.strip() for x in parts]:
                 if port == parts[0].strip():
                     found.append((service, p))
