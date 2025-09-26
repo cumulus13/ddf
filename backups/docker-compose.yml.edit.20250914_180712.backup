@@ -1,0 +1,3067 @@
+services:
+  ubuntu-25.10-zsh-omz: &id001
+    build:
+      context: ./containers/ubuntu
+      dockerfile: Dockerfile-ubuntu-25.10-zsh-omz
+      network: host
+      args:
+        OMZ_REPO: http://gogs.container.com/root/ohmyzsh
+        POWERLEVEL10K_REPO: http://gogs.container.com/root/powerlevel10k
+        DISPLAY: 222.222.222.7:0.0
+    image: ubuntu-25.10-zsh-omz
+    container_name: ubuntu-25.10-zsh-omz
+    hostname: ubuntu-25.10-zsh-omz
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  apt-cacher-ng:
+    build:
+      context: ./containers/ubuntu
+      dockerfile: Dockerfile-apt-cacher-ng
+      network: host
+    image: apt-cacher-ng
+    container_name: apt-cacher-ng
+    hostname: apt-cacher-ng
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 3142:3142
+    volumes:
+    - /containers/ubuntu/conf/apt-cacher-ng.conf:/etc/apt-cacher-ng/acng.conf:rw
+    - /containers/ubuntu/var/cache/apt-cacher-ng:/var/cache/apt-cacher-ng:rw
+    - /projects:/projects:rw
+    - /projects2:/projects2:rw
+  alpine-3.20-zsh-omz:
+    build:
+      context: ./containers/alpine
+      dockerfile: Dockerfile-alpine-3.20-zsh-omz
+      network: host
+      args:
+        OMZ_REPO: http://gogs.container.com/root/ohmyzsh
+        POWERLEVEL10K_REPO: http://gogs.container.com/root/powerlevel10k
+        DISPLAY: 222.222.222.7:0.0
+    image: alpine-3.20-zsh-omz
+    container_name: alpine-3.20-zsh-omz
+    hostname: alpine-3.20-zsh-omz
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  base:
+    build:
+      context: ./containers/base-alpine
+      dockerfile: Dockerfile
+    image: base-alpine
+    container_name: base-alpine
+    hostname: base-alpine
+    ports:
+    - '24:22'
+    - 2516:514/udp
+    - 2516:514
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  base-mini:
+    build:
+      context: ./containers/base-mini-alpine
+      dockerfile: Dockerfile
+    image: base-mini-alpine
+    container_name: base-mini-alpine
+    hostname: base-mini-alpine
+    ports:
+    - 9004:9000
+    - 8514:514/udp
+    - 8514:514
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  base-rsyslog-debian-bullseye:
+    build:
+      context: ./containers/base-rsyslog-debian-bullseye
+      dockerfile: Dockerfile
+    image: base-rsyslog-debian-bullseye
+    container_name: base-rsyslog-debian-bullseye
+    hostname: base-rsyslog-debian-bullseye
+    ports:
+    - '30:22'
+    - 6514:514/udp
+    - 6514:514
+    env_file:
+    - .env
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /mnt/c/PROJECTS/containers/base-rsyslog-debian-bullseye/conf/rsyslog.conf:/tmp/rsyslog.conf
+    - /mnt/c/PROJECTS/containers/base-rsyslog-debian-bullseye/conf/rsyslog.d:/etc/rsyslog.d
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  base-webserver:
+    build:
+      context: ./containers/base-webserver
+      dockerfile: Dockerfile
+    image: base-webserver
+    container_name: base-webserver
+    depends_on:
+    - base-mini
+    hostname: base-webserver
+    ports:
+    - '29:22'
+    - 3514:514/udp
+    - 3514:514
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  webserver:
+    build:
+      context: ./containers/webserver-alpine
+      dockerfile: Dockerfile
+    container_name: webserver
+    image: webserver
+    depends_on:
+    - base-webserver
+    hostname: webserver-alpine
+    ports:
+    - 80:80
+    - 443:443
+    - 9010:9001
+    - 9000:9000
+    - 9400:9100
+    - 4514:514/udp
+    - 4514:514
+    volumes:
+    - /mnt/c/PROJECTS:/projects:rw
+    - /www:/www:reshared
+    - /var/log:/log:rw
+    - /containers/webserver:/webserver:rw
+    - /containers/webserver/conf/nginx.conf:/etc/nginx/nginx.conf:rw
+    - /containers/webserver/conf/vhosts:/etc/nginx/vhosts:rw
+    - /containers/webserver/conf/proxies:/etc/nginx/proxies:rw
+    - /containers/webserver/conf/keys:/etc/nginx/keys:rw
+    - /containers/webserver/conf/streams:/etc/nginx/stream.d:rw
+    - /containers/webserver/conf/stream.conf:/etc/nginx/conf.d/stream.conf:rw
+    - /containers/webserver/conf/www.conf:/etc/php83/php-fpm.d/www.conf:rw
+    - /containers/webserver/conf/index_php_info.php:/opt/www/phpinfo/index.php:rw
+    - /containers/webserver/conf/create_user_www_data:/usr/bin/create_user_www_data:rw
+    - /mnt/sdb2/MUSICS:/musics:rw
+    - /mnt/c:/licx:rw
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '2.0'
+    entrypoint:
+    - /usr/local/bin/entrypoint.sh
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    networks:
+    - default
+    - cloud
+  mysql:
+    build:
+      context: ./containers/mysql-alpine
+      dockerfile: Dockerfile
+    container_name: mysql
+    image: mysql
+    depends_on:
+    - base-mini
+    hostname: mysql
+    ports:
+    - 3306:3306
+    - 5514:514/udp
+    - 5514:514
+    - 9015:9000
+    volumes:
+    - mysql_data:/var/lib/mysql
+    env_file: ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '2.0'
+    command:
+    - /usr/local/bin/entrypoint.sh
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mysqle:
+    build:
+      context: ./containers/mysql-exporter
+      dockerfile: Dockerfile
+    container_name: mysqle
+    image: mysqle
+    depends_on:
+    - base
+    hostname: mysqle
+    ports:
+    - 9104:9104
+    volumes:
+    - /mnt/c/PROJECTS/containers/mysql-exporter/my.cf:/.my.cnf
+    env_file: ./containers/mysql-exporter/.env
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+          cpus: '0.2'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mongo:
+    build:
+      context: ./containers/mongo-alpine
+      dockerfile: Dockerfile1
+    hostname: mongo
+    container_name: mongo
+    image: mongo
+    depends_on:
+    - base
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 27017:27017
+    - 9009:9000
+    - 9514:514/udp
+    volumes:
+    - mongo-data:/data/db
+    - mongo-config:/data/configdb
+    - /mnt/c/PROJECTS/containers/mongo-alpine/rsyslog.conf:/tmp/rsyslog.conf
+    env_file: ./.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+  rabbitmq:
+    build:
+      context: ./containers/rabbit
+      dockerfile: Dockerfile1
+    container_name: rabbitmq
+    image: rabbitmq
+    depends_on:
+    - base-mini
+    hostname: rabbitmq
+    ports:
+    - 5672:5672
+    - 15672:15672
+    - 9500:9100
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '2.0'
+    command:
+    - /usr/local/bin/entrypoint.sh
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  rsyslog-alpine:
+    build:
+      context: ./containers/rsyslog-alpine
+      dockerfile: Dockerfile
+    hostname: rsyslog-alpine
+    container_name: rsyslog-alpine
+    image: rsyslog-alpine
+    ports:
+    - 514:514/udp
+    - 514:514
+    restart: unless-stopped
+    volumes:
+    - /mnt/c/LOGS:/log:rw
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '2.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  rsyslog:
+    build:
+      context: ./containers/rsyslog
+      dockerfile: Dockerfile
+    hostname: rsyslog
+    container_name: rsyslog
+    image: rsyslog
+    ports:
+    - 514:514/udp
+    - 514:514
+    volumes:
+    - /mnt/c/LOGS:/log:rw
+    - /mnt/c/PROJECTS/containers/rsyslog/conf/appliance:/home/appliance
+    - /mnt/c/PROJECTS/containers/rsyslog/conf/config:/config
+    - /mnt/c/PROJECTS/containers/rsyslog/conf/rsyslog.d:/etc/rsyslog.d
+    - /mnt/c/PROJECTS/containers/rsyslog/conf/rsyslog.conf:/etc/rsyslog.conf
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '2.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  komodo-mongo:
+    image: mongo
+    hostname: mongo
+    container_name: mongo
+    labels:
+      komodo.skip: null
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    volumes:
+    - mongo-data:/data/db
+    - mongo-config:/data/configdb
+    env_file: ./.env
+  komodo:
+    build:
+      context: ./containers/komodo
+      dockerfile: Dockerfile
+    image: komodo
+    hostname: komodo
+    container_name: komodo
+    labels:
+      komodo.skip: null
+    restart: unless-stopped
+    depends_on:
+    - base-rsyslog-debian-bullseye
+    - mongo
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 9120:9120
+    - '30:22'
+    - 6514:514/udp
+    - 6514:514
+    env_file: .env
+    deploy:
+      resources:
+        limits:
+          memory: 1000m
+          cpus: '2.0'
+    volumes:
+    - repo-cache:/repo-cache
+    - /mnt/c/PROJECTS:/projects
+    - /mnt/c/PROJECTS/containers/base-rsyslog-debian-bullseye/conf/rsyslog.conf:/tmp/rsyslog.conf
+    - /mnt/c/PROJECTS/containers/base-rsyslog-debian-bullseye/conf/rsyslog.d:/etc/rsyslog.d
+  periphery:
+    image: ghcr.io/mbecker20/periphery:${COMPOSE_KOMODO_IMAGE_TAG:-latest}
+    hostname: periphery
+    container_name: periphery
+    labels:
+      komodo.skip: null
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file: ./.env
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /proc:/proc
+    - ${PERIPHERY_ROOT_DIRECTORY:-/etc/komodo}:${PERIPHERY_ROOT_DIRECTORY:-/etc/komodo}
+  postgres:
+    build:
+      context: ./containers/postgres
+      dockerfile: Dockerfile
+    container_name: postgresql
+    hostname: postgresql
+    image: postgresql
+    shm_size: 256m
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: Xxxnuxer13
+    volumes:
+    - /containers:/containers
+    - pg_data:/var/lib/postgresql/data
+    - /containers/postgres/pg_run:/run/postgresql
+    ports:
+    - 5432:5432
+    - '31:22'
+    - 9013:9000
+    - 12514:514/udp
+    healthcheck:
+      test:
+      - CMD
+      - pg_isready
+      - -U
+      - postgres
+      interval: 10s
+      retries: 5
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mysql2:
+    build:
+      context: ./containers/mysql
+      dockerfile: Dockerfile
+    container_name: mysql2
+    hostname: mysql2
+    image: mysql2
+    env_file: ./.env
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - mysql_data:/var/lib/mysql
+    ports:
+    - 3306:3306
+    - '38:22'
+    command:
+    - mysqld
+    - --user=mysql
+    - --console
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  pgadmin:
+    build:
+      context: ./containers/pgadmin
+      dockerfile: Dockerfile
+    container_name: pgadmin
+    hostname: pgadmin
+    image: pgadmin
+    shm_size: 256m
+    ports:
+    - 5050:80
+    - 5054:443
+    - '34:22'
+    depends_on:
+    - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  odoo:
+    build:
+      context: ./containers/odoo
+      dockerfile: Dockerfile
+    container_name: odoo
+    image: odoo
+    depends_on:
+    - postgres
+    ports:
+    - 8069:8069
+    environment:
+    - DB_HOST=postgres
+    - DB_USER=odoo
+    - DB_PASSWORD=Xxxnuxer13
+    - DB_NAME=odoo
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /mnt/c/PROJECTS/containers/odoo/odoo-18.0:/opt/odoo/odoo
+    - odoo_data:/var/lib/odoo
+    entrypoint:
+    - /usr/local/bin/entrypoint.sh
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  pypiserver:
+    container_name: pypiserver
+    hostname: pypiserver
+    image: pypiserver/pypiserver:latest
+    ports:
+    - 9111:8080
+    volumes:
+    - /mnt/c/PYTHON_MODULES:/data/packages
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+  pypiserver2:
+    build:
+      context: ./containers/pypiserver
+      dockerfile: Dockerfile1
+    container_name: pypiserver2
+    hostname: pypiserver2
+    image: pypiserver2
+    ports:
+    - 9222:8080
+    - 9005:9000
+    - 7514:514/udp
+    - 7514:514
+    volumes:
+    - /mnt/c/PYTHON_MODULES:/data/packages
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 200m
+          cpus: '1.0'
+  privatepypi:
+    build:
+      context: ./containers/privatepypi
+      dockerfile: Dockerfile
+    container_name: privatepypi
+    hostname: privatepypi
+    image: privatepypi
+    ports:
+    - 9333:8888
+    - 9444:9444
+    - 33000:32000
+    - 9400:9100
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /mnt/c/PYTHON_MODULES:/data/packages
+    - /mnt/c/PROJECTS/containers/privatepypi/conf/pryvate.conf:/data/pryvate.conf
+    - /mnt/c/PROJECTS/containers/privatepypi/conf/pryvate.secret:/data/pryvate.secret
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+  traefik:
+    image: traefik:v2.1
+    container_name: traefik
+    hostname: traefik
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - /mnt/traefik:/etc/traefik:ro
+    - /mnt/traefik/acme:/etc/traefik/acme
+    command:
+    - --entrypoints.web.address=:80
+    - --entrypoints.websecure.address=:443
+    - --providers.docker=true
+    - --providers.docker.exposedbydefault=false
+    - --api.dashboard=true
+    - --certificatesresolvers.leresolver.acme.email=cumulus13@gmail.com
+    - --certificatesresolvers.leresolver.acme.storage=/etc/traefik/acme/acme.json
+    - --certificatesresolvers.leresolver.acme.httpChallenge=true
+    - --certificatesresolvers.leresolver.acme.httpChallenge.entrypoint=web
+    ports:
+    - 80:80
+    - 443:443
+    labels:
+    - traefik.enable=true
+    - traefik.http.routers.traefik.rule=Host(`cumulus13.com`) && (PathPrefix(`/api`)
+      || PathPrefix(`/dashboard`))
+    - traefik.http.routers.traefik.entrypoints=websecure
+    - traefik.http.routers.traefik.tls=true
+    - traefik.http.routers.traefik.tls.certresolver=leresolver
+    - traefik.http.routers.traefik.service=api@internal
+    - traefik.http.routers.traefik.middlewares=authtraefik
+    - traefik.http.middlewares.authtraefik.basicauth.usersfile=/etc/traefik/usersfile
+    - traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+    - traefik.http.routers.http-catchall.entrypoints=web
+    - traefik.http.routers.http-catchall.middlewares=redirect-to-https
+    - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  laravel:
+    build:
+      context: ./containers/laravel
+      dockerfile: Dockerfile
+    container_name: laravel
+    image: laravel
+    hostname: laravel
+    ports:
+    - 8081:8000
+    - 8082:8001
+    - 8083:8002
+    - 8084:8003
+    - '33:22'
+    working_dir: /var/www/html
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - laravel_data:/var/www/html
+    entrypoint:
+    - /usr/local/bin/entrypoint.sh
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  hoppscotch-frontend:
+    build:
+      context: ./containers/hoppscotch/frontend
+      dockerfile: Dockerfile
+    container_name: hoppscotch-frontend
+    image: hoppscotch-frontend
+    hostname: hoppscotch-frontend
+    ports:
+    - 20001:3000
+    - '35:22'
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  hoppscotch-backend:
+    build:
+      context: ./containers/hoppscotch/backend
+      dockerfile: Dockerfile
+    container_name: hoppscotch-backend
+    image: hoppscotch-backend
+    hostname: hoppscotch-backend
+    ports:
+    - 20002:3170
+    - '36:22'
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  hoppscotch-admin:
+    build:
+      context: ./containers/hoppscotch/admin
+      dockerfile: Dockerfile
+    container_name: hoppscotch-admin
+    image: hoppscotch-admin
+    hostname: hoppscotch-admin
+    ports:
+    - 20003:3100
+    - '37:22'
+    restart: unless-stopped
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mailserver:
+    build:
+      context: ./containers/mailserver
+      dockerfile: Dockerfile1
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.0'
+    container_name: mailserver
+    image: mailserver
+    hostname: mailserver
+    environment:
+      MAIL_HOSTNAME: mail.licface.com
+      MYSQL_USER: mail_admin
+      MYSQL_PASSWORD: Xxxnuxer13
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: mailserver
+      MYSQL_ROOT_PASSWORD: Xxxnuxer13
+    ports:
+    - '25:25'
+    - 143:143
+    - 465:465
+    - 587:587
+    - 993:993
+    - 110:110
+    - 11514:514/udp
+    - 9012:9000
+    - '27:22'
+    volumes:
+    - mail_data:/var/mail
+    depends_on:
+    - mysql
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    restart: always
+  roundcube:
+    build:
+      context: ./containers/roundcube
+      dockerfile: Dockerfile
+    container_name: roundcube
+    image: roundcube
+    hostname: roundcube
+    restart: always
+    environment:
+    - ROUNDCUBEMAIL_DB_TYPE=postgres
+    - ROUNDCUBEMAIL_DB_HOST=postgresql
+    - ROUNDCUBEMAIL_DB_USER=mail_admin
+    - ROUNDCUBEMAIL_DB_PASSWORD=Xxxnuxer13
+    - ROUNDCUBEMAIL_DB_NAME=roundcube
+    - ROUNDCUBEMAIL_DEFAULT_HOST=mailserver
+    volumes:
+    - /mnt/c/PROJECTS/containers/roundcube/conf/config.inc.php:/var/www/html/config/config.inc.php
+    ports:
+    - 32000:80
+    depends_on:
+    - postgres
+    - mailserver
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  django:
+    build:
+      context: ./containers/django
+      dockerfile: Dockerfile
+    container_name: django
+    image: django
+    hostname: django
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    ports:
+    - '39:22'
+    - 7000:7000
+    - 7001:7001
+    - 7002:7002
+    - 7003:7003
+    - 7004:7004
+    - 7005:7005
+    depends_on:
+    - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '2.0'
+    env_file: ./containers/django/.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  redis:
+    build:
+      context: ./containers/redis
+      dockerfile: Dockerfile
+    container_name: redis
+    image: redis
+    hostname: redis
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - redis_data:/data
+    ports:
+    - 6379:6379
+    - 9011:9000
+    - 10514:514/udp
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+    env_file: ./containers/redis/.env
+  ocr:
+    build: ./containers/ocr
+    container_name: ocr
+    image: base-ocr
+    hostname: ocr
+    env_file: ./containers/ocr/.env
+    volumes:
+    - /mnt/c/PROJECTS/containers/ocr/app:/usr/src/app
+    - /mnt/c/PROJECTS:/projects
+    ports:
+    - 516:514/udp
+    - 1337:80
+    - 9008:9000
+    depends_on:
+    - redis
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  esyslog:
+    build: ./containers/esyslog
+    container_name: esyslog
+    image: esyslog
+    hostname: esyslog
+    env_file: ./containers/esyslog/.env
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    ports:
+    - 518:514/udp
+    - 8934:80
+    - '5182:22'
+    depends_on:
+    - rabbitmq
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:518
+        tag: docker/{{.Name}}
+    tty: true
+  esyslog-frontend:
+    build:
+      context: ./containers/esyslog
+      dockerfile: Dockerfile-frontend
+    container_name: esyslog-frontend
+    image: esyslog-frontend
+    hostname: esyslog-frontend
+    env_file: ./containers/esyslog/.env
+    volumes:
+    - /projects:/projects
+    ports:
+    - 519:514/udp
+    - 8935:80
+    - '5192:22'
+    depends_on:
+    - rabbitmq
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:518
+        tag: docker/{{.Name}}
+    tty: true
+  celery:
+    build: ./containers/celery
+    container_name: celery
+    image: celery
+    hostname: celery
+    volumes:
+    - /mnt/c/PROJECTS/containers/ocr/app:/usr/src/app
+    - /mnt/c/PROJECTS:/projects
+    env_file: ./containers/ocr/app/core/.env
+    depends_on:
+    - ocr
+    - redis
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '2.0'
+    ports:
+    - '42:22'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  flower:
+    build:
+      context: ./containers/flower
+      dockerfile: Dockerfile1
+    container_name: flower
+    image: flower
+    hostname: flower
+    env_file: ./containers/ocr/app/core/.env
+    ports:
+    - 5555:5555
+    - '43:22'
+    volumes:
+    - /mnt/c/PROJECTS/containers/ocr/app:/usr/src/app
+    - /mnt/c/PROJECTS:/projects
+    depends_on:
+    - ocr
+    - redis
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '1.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  caido:
+    build: ./containers/caido
+    container_name: caido
+    image: caido
+    hostname: caido
+    ports:
+    - 33333:8080
+    deploy:
+      resources:
+        limits:
+          memory: 1056m
+          cpus: '2.0'
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  elasticsearch:
+    build:
+      context: ./containers/elasticsearch
+      dockerfile: Dockerfile1
+    container_name: elasticsearch
+    image: elasticsearch:v1
+    hostname: elasticsearch
+    environment:
+    - cluster.name=prod-es-container-cluster
+    - node.name=es-container-node-1
+    - network.host=0.0.0.0
+    - ELASTIC_PASSWORD=Xxxnuxer13
+    - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    - xpack.security.enabled=true
+    - discovery.type=single-node
+    - path.repo=/usr/share/elasticsearch/data/snapshot
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+    - /containers/elasticsearch/data:/usr/share/elasticsearch/data:rw
+    - /mnt/c/PROJECTS:/projects
+    ports:
+    - 9200:9200
+    - 9300:9300
+    expose:
+    - '9200'
+    - '9300'
+    tty: true
+    stdin_open: true
+    deploy:
+      resources:
+        limits:
+          memory: 1056m
+          cpus: '1.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    mem_limit: 1056m
+    cpus: 1.0
+    privileged: true
+  kibana:
+    build:
+      context: ./containers/kibana
+      dockerfile: Dockerfile
+    container_name: kibana
+    image: kibana
+    hostname: kibana
+    ports:
+    - 5601:5601
+    deploy:
+      resources:
+        limits:
+          memory: 1056m
+          cpus: '1.0'
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  logstash:
+    build:
+      context: ./containers/logstash
+      dockerfile: Dockerfile
+    container_name: logstash
+    image: logstash
+    hostname: logstash
+    ports:
+    - 5044:5044
+    deploy:
+      resources:
+        limits:
+          memory: 1056m
+          cpus: '1.0'
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /mnt/c/PROJECTS/containers/logstash/pipeline:/usr/share/logstash/pipeline
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  filebeat:
+    build:
+      context: ./containers/filebeat
+      dockerfile: Dockerfile
+    container_name: filebeat
+    image: filebeat
+    hostname: filebeat
+    deploy:
+      resources:
+        limits:
+          memory: 1056m
+          cpus: '1.0'
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /mnt/c/LOGS:/logs
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mitmproxy:
+    build:
+      context: ./containers/mitmproxy
+      dockerfile: Dockerfile1
+    container_name: mitmproxy
+    image: mitmproxy
+    hostname: mitmproxy
+    ports:
+    - 11000:8080
+    - 11001:8081
+    deploy:
+      resources:
+        limits:
+          memory: 1056m
+          cpus: '2.0'
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    command: mitmweb --web-host 0.0.0.0 --listen-port 8080 --web-port 8081 --listen-host
+      0.0.0.0
+    restart: unless-stopped
+    tty: true
+  apisix:
+    image: apache/apisix:${APISIX_IMAGE_TAG:-3.11.0-debian}
+    container_name: apisix
+    hostname: apisix
+    restart: always
+    volumes:
+    - /mnt/c/PROJECTS/containers/apisix/apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+    depends_on:
+    - etcd
+    ports:
+    - 9180:9180/tcp
+    - 9080:9080/tcp
+    - 9091:9091/tcp
+    - 9443:9443/tcp
+    - 9092:9092/tcp
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  etcd:
+    image: bitnami/etcd:3.5.11
+    container_name: etcd
+    hostname: etcd
+    restart: always
+    volumes:
+    - etcd_data:/bitnami/etcd
+    environment:
+      ETCD_ENABLE_V2: 'true'
+      ALLOW_NONE_AUTHENTICATION: 'yes'
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+    ports:
+    - 2379:2379/tcp
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  web1:
+    image: nginx:1.19.0-alpine
+    container_name: web1
+    hostname: web1
+    restart: always
+    volumes:
+    - /mnt/c/PROJECTS/containers/apisix/upstream/web1.conf:/etc/nginx/nginx.conf
+    ports:
+    - 9081:80/tcp
+    environment:
+    - NGINX_PORT=80
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    network_mode: host
+  web2:
+    image: nginx:1.19.0-alpine
+    container_name: web2
+    hostname: web2
+    restart: always
+    volumes:
+    - /mnt/c/PROJECTS/containers/apisix/upstream/web2.conf:/etc/nginx/nginx.conf
+    ports:
+    - 9082:80/tcp
+    environment:
+    - NGINX_PORT=80
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  prometheus:
+    build:
+      context: ./containers/prometheus
+      dockerfile: Dockerfile
+    image: prometheus
+    container_name: prometheus
+    hostname: prometheus
+    restart: always
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /etc/timezone:/etc/timezone:ro
+    ports:
+    - 9090:9090
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  prometheus2:
+    build:
+      context: ./containers/prometheus
+      dockerfile: Dockerfile1
+    image: prometheus2
+    container_name: prometheus2
+    hostname: prometheus2
+    restart: always
+    ports:
+    - 9090:9090
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  grafana2:
+    image: grafana/grafana:7.3.7
+    container_name: grafana2
+    hostname: grafana2
+    ports:
+    - 3003:3000
+    volumes:
+    - /mnt/c/PROJECTS/containers/apisix/grafana_conf/provisioning:/etc/grafana/provisioning
+    - /mnt/c/PROJECTS/containers/apisix/grafana_conf/dashboards:/var/lib/grafana/dashboards
+    - /mnt/c/PROJECTS/containers/apisix/grafana_conf/config/grafana.ini:/etc/grafana/grafana.ini
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  grafana:
+    build:
+      context: ./containers/grafana
+      dockerfile: Dockerfile
+    container_name: grafana
+    hostname: grafana
+    image: grafana
+    ports:
+    - 3002:3000
+    - 9014:9100
+    - 2515:514/udp
+    - 2515:514
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
+    env_file: ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  adguardhome:
+    build:
+      context: ./containers/adguard
+      dockerfile: Dockerfile
+    image: adguardhome
+    container_name: adguardhome
+    hostname: adguardhome
+    restart: unless-stopped
+    ports:
+    - 53:53/tcp
+    - 53:53/udp
+    - 81:81
+    - 3001:3000
+    volumes:
+    - /mnt/c/PROJECTS/containers/adguard/work:/opt/adguardhome/work
+    - /mnt/c/PROJECTS/containers/adguard/conf:/opt/adguardhome/conf
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  haproxy:
+    build:
+      context: ./containers/haproxy
+      dockerfile: Dockerfile
+    container_name: haproxy
+    hostname: haproxy
+    image: haproxy
+    volumes:
+    - /containers/haproxy/conf/haproxy.cfg:/etc/haproxy/haproxy.cfg
+    ports:
+    - 82:80
+    - 9006:9000
+    depends_on:
+    - web1
+    - web2
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  memcached:
+    build:
+      context: ./containers/memcached
+      dockerfile: Dockerfile
+    container_name: memcached
+    hostname: memcached
+    image: memcached
+    restart: always
+    env_file:
+    - ./.env
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    ports:
+    - 11211:11211
+    - 9007:9000
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+          cpus: '1.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  emby:
+    build:
+      context: ./containers/emby
+      dockerfile: Dockerfile
+    image: embyserver
+    container_name: embyserver
+    hostname: embyserver
+    network_mode: host
+    environment:
+    - UID=0
+    - GID=0
+    - GIDLIST=100,1000
+    volumes:
+    - /data/config:/config:rw
+    - /data/TV:/data/TV:rw
+    - /data/Movies:/data/Movies:rw
+    - /mnt/sdb2/MUSICS:/data/Musics:rw
+    - /data/Tutorials:/data/Tutorials:rw
+    - /data/Animes:/data/Animes:rw
+    - /data/mbu:/data/mbu:rw
+    - /mnt/sdb2/MUSICS:/musics:rw
+    devices:
+    - /dev/dri:/dev/dri
+    restart: on-failure
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  jellyfin:
+    build:
+      context: ./containers/jellyfin
+      dockerfile: Dockerfile
+    image: jellyfin
+    container_name: jellyfin
+    hostname: jellyfin
+    network_mode: host
+    volumes:
+    - /data/config_jellyfin:/config:rw
+    - /data/TV:/data/TV:rw
+    - /data/Movies:/data/Movies:rw
+    - /mnt/sdb2/MUSICS:/data/Musics:rw
+    - /data/Tutorials:/data/Tutorials:rw
+    - /data/Animes:/data/Animes:rw
+    - /data/mbu:/data/mbu:rw
+    - /mnt/sdb2/MUSICS:/musics:rw
+    devices:
+    - /dev/dri:/dev/dri
+    restart: on-failure
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  plex:
+    build:
+      context: ./containers/plex
+      dockerfile: Dockerfile
+    image: plex
+    container_name: plex
+    hostname: plex
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Etc/UTC
+    - VERSION=docker
+    - PLEX_CLAIM=
+    volumes:
+    - /containers/plex/config:/config:rw
+    - /data/TV:/tv:rw
+    - /data/Movies:/movies:rw
+    - /data/Animes:/animes:rw
+    - /data/Tutorials:/tutorial:rw
+    - /data/musics:/music:rw
+    - /mnt/sdb2/MOVIES/Box Office:/movies2:rw
+    - /mnt/sdb2/MUSICS:/music2:rw
+    - /mnt/sdb2/TV:/tv2:rw
+    - /mnt/sdb2/Tutorial:/tutorial2:rw
+    - /data/mbu:/mbu:rw
+    - /mnt/sdb2/mbu:/mbu2:rw
+    restart: on-failure
+    network_mode: host
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    devices:
+    - /dev/dri:/dev/dri
+  zookeeper:
+    build:
+      context: ./containers/zookeeper
+      dockerfile: Dockerfile
+    image: zookeeper
+    container_name: zookeeper
+    hostname: zookeeper
+    ports:
+    - 2181:2181
+    - 2888:2888
+    - 3888:3888
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+    env_file: ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  kafka1:
+    build:
+      context: ./containers/kafka
+      dockerfile: Dockerfile1
+    image: kafka1
+    hostname: kafka1
+    container_name: kafka1
+    ports:
+    - 9092:9092
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    depends_on:
+    - zookeeper
+  kafka2:
+    build:
+      context: ./containers/kafka
+      dockerfile: Dockerfile2
+    image: kafka2
+    hostname: kafka2
+    container_name: kafka2
+    ports:
+    - 9093:9093
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    depends_on:
+    - zookeeper
+  envoy:
+    build:
+      context: ./containers/envoy
+      dockerfile: Dockerfile1
+    image: envoy
+    hostname: envoy
+    container_name: envoy
+    volumes:
+    - /containers/envoy/conf/envoy.yaml:/opt/envoy/envoy.yaml:rw
+    ports:
+    - 1514:514/udp
+    - 2514:1514/udp
+    - 9902:9902
+    - '2222:22'
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+  code:
+    build:
+      context: ./containers/code
+      dockerfile: Dockerfile1
+    image: code
+    hostname: code
+    container_name: code
+    volumes:
+    - /containers/code/tools:/tools:rw
+    - /containers/code/conf/config.yaml:/opt/code-server/config.yaml:reshared
+    - /mnt/c/PROJECTS:/projects:reshared
+    - /projects2:/projects2:reshared
+    - /projects:/projects3:rw
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    network_mode: host
+  code2:
+    build:
+      context: ./containers/code
+      dockerfile: Dockerfile2
+    image: code2
+    hostname: code2
+    container_name: code2
+    volumes:
+    - /containers/code/tools:/tools:rw
+    - /containers/code/conf/config2.yaml:/opt/code-server/config.yaml:reshared
+    - /mnt/c/PROJECTS:/projects:reshared
+    - /projects2:/projects2:reshared
+    - /projects:/projects3:rw
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    network_mode: host
+  code3:
+    build:
+      context: ./containers/code
+      dockerfile: Dockerfile3
+    image: code3
+    hostname: code3
+    container_name: code3
+    volumes:
+    - /containers/code/tools:/tools:rw
+    - /containers/code/conf/config3.yaml:/opt/code-server/config.yaml:reshared
+    - /mnt/c/PROJECTS:/projects:reshared
+    - /projects2:/projects2:reshared
+    - /projects:/projects3:rw
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    network_mode: host
+  code4:
+    build:
+      context: ./containers/code
+      dockerfile: Dockerfile5
+    image: code4
+    hostname: code4
+    container_name: code4
+    volumes:
+    - /containers/code/tools:/tools:rw
+    - /containers/code/conf/config.yaml:/home/coder/.config/code-server/config.yaml:rw
+    - /mnt/c/PROJECTS:/projects:reshared
+    - /projects2:/projects2:reshared
+    - /projects:/projects3:rw
+    - /projects:/home/coder/project:rw
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    network_mode: host
+  openvscode-server:
+    build:
+      context: ./containers/code
+      dockerfile: Dockerfile4
+    image: openvscode-server
+    hostname: openvscode-server
+    container_name: openvscode-server
+    ports:
+    - 3001:3000
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    network_mode: host
+    environment:
+    - PASSWORD=Xxxnuxer13
+    command:
+    - --port
+    - '3001'
+    volumes:
+    - /containers/code/tools:/tools:rw
+    - /containers/code/conf/config4.yaml:/opt/code-server/config.yaml:reshared
+    - /mnt/c/PROJECTS:/projects:reshared
+    - /projects2:/projects2:reshared
+    - /projects:/projects3:rw
+  zed:
+    build:
+      context: ./containers/zed
+      dockerfile: Dockerfile
+    image: zed
+    hostname: zed
+    container_name: zed
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    network_mode: host
+    environment:
+    - DISPLAY=222.222.222.7:0.0
+    - DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
+    - LANG=en_US.UTF-8
+    - LANGUAGE=en_US:en
+    - LC_ALL=en_US.UTF-8
+    volumes:
+    - /dev/dri:/dev/dri
+    - /var/run/dbus:/var/run/dbus
+    - /root/.local/zed.app:/root/.local/zed.app
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    - /mnt/c/PROJECTS:/projects:rw
+  debian_bookworm_slim:
+    build:
+      context: ./containers/debian_bookworm_slim
+      dockerfile: Dockerfile
+    image: debian_bookworm_slim
+    container_name: debian_bookworm_slim
+    hostname: debian_bookworm_slim
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  anaconda3:
+    build:
+      context: ./containers/anaconda
+      dockerfile: Dockerfile3
+    image: anaconda3
+    container_name: anaconda3
+    hostname: anaconda3
+    env_file:
+    - ./.env
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  kali1:
+    build:
+      context: ./containers/kali
+      dockerfile: Dockerfile3
+    image: kali1
+    container_name: kali1
+    hostname: kali1
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    network_mode: host
+    privileged: true
+    devices:
+    - /dev/bus/usb:/dev/bus/usb
+    - /dev/fuse
+    tty: true
+  kali2:
+    build:
+      context: ./containers/kali
+      dockerfile: Dockerfile2
+    image: kali2
+    container_name: kali2
+    hostname: kali2
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  kali-rolling:
+    build:
+      context: ./containers/kali
+      dockerfile: Dockerfile-rolling
+      network: host
+      args:
+        OMZ_REPO: http://gogs.container.com/root/ohmyzsh
+        POWERLEVEL10K_REPO: http://gogs.container.com/root/powerlevel10k
+        DISPLAY: 222.222.222.7:0.0
+    image: kali-rolling
+    container_name: kali-rolling
+    hostname: kali-rolling
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    network_mode: host
+    privileged: true
+    devices:
+    - /dev/bus/usb:/dev/bus/usb
+    - /dev/fuse
+    tty: true
+  metasploit:
+    build:
+      context: ./containers/metasploit
+      dockerfile: Dockerfile
+    image: metasploit
+    container_name: metasploit
+    hostname: metasploit
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mpd:
+    build:
+      context: ./containers/mpd
+      dockerfile: Dockerfile1
+    hostname: mpd
+    container_name: mpd
+    image: mpd
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    restart: unless-stopped
+    environment:
+    - PULSE_SERVER=unix:/tmp/pulse/native
+    volumes:
+    - /containers/mpd/conf/ncmpcpp_config:/home/mpd/.ncmpcpp
+    - /containers/mpd/conf/mpd.conf:/etc/mpd.conf
+    - /containers/mpd/conf/mopidy.conf:/etc/mopidy/mopidy.conf
+    - /root/.config/pulse/native:/tmp/pulse/native:ro
+    - /dev/shm:/dev/shm
+    - /tmp/.X11-unix:/tmp/.X11-unix
+    - /mnt/c/MUSICS:/musics:rw
+    - /containers/mpd/data:/var/lib/mpd
+    - /tmp/mpd:/tmp/mpd:rw
+    devices:
+    - /dev/snd
+    - /dev/fuse
+    cap_add:
+    - SYS_NICE
+    - SYS_ADMIN
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 6600:6600
+    - 6601:6601
+    - 6680:6680
+    - 4713:4713
+    - 8001:8000
+    - 8100:8100
+    - 1704:1704
+    - 1705:1705
+    - 1780:1780
+    security_opt:
+    - seccomp:unconfined
+  rompr:
+    build:
+      context: ./containers/rompr
+      dockerfile: Dockerfile3
+      args:
+        ROMPR_VERSION: 2.19
+    container_name: rompr1
+    hostname: rompr1
+    image: rompr:v1
+    volumes:
+    - /containers/rompr:/RompR:rw
+    ports:
+    - 33001:80
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  ampache:
+    build:
+      context: ./containers/ampache
+      dockerfile: Dockerfile
+    image: ampache
+    container_name: ampache
+    hostname: ampache
+    restart: unless-stopped
+    ports:
+    - 88:80
+    volumes:
+    - ./data/config:/var/www/config
+    - ./data/log:/var/log/ampache
+    - ./data/media:/media
+    - ./data/mysql:/var/lib/mysql
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    environment:
+      DISABLE_INOTIFYWAIT_CLEAN: ${DISABLE_INOTIFYWAIT_CLEAN-0}
+  cheeseshop:
+    build:
+      context: ./containers/cheeseshop
+      dockerfile: Dockerfile
+    hostname: cheeseshop
+    container_name: cheeseshop
+    image: cheeseshop
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    volumes:
+    - /containers/cheeseshop/warehouse:/cheeseshop:rw
+    - /containers/cheeseshop/conf/rsyslog.conf:/etc/rsyslog.conf:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 99:8080
+  apkserver:
+    build:
+      context: ./containers/apkserver
+      dockerfile: Dockerfile
+    hostname: apkserver
+    container_name: apkserver
+    image: apkserver
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    volumes:
+    - /containers/apkserver/nginx.conf:/etc/nginx/nginx.conf:rw
+    - /containers/apkserver/rsyslog.conf:/etc/rsyslog.conf:rw
+    - /var/cache/apk:/var/cache/apk:rw
+    - /projects:/projects:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 85:80
+    - 86:8000
+  test:
+    image: alpine:3.20
+    hostname: test
+    container_name: test
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    volumes:
+    - /projects:/projects:rw
+    - /downloads:/downloads:rw
+  cgit:
+    build:
+      context: ./containers/cgit
+      dockerfile: Dockerfile
+      network: host
+    container_name: cgit
+    hostname: cgit
+    image: cgit
+    ports:
+    - 84:80
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /containers/cgit/nginx.conf:/etc/nginx/nginx.conf:rw
+    - /containers/cgit/default.conf:/etc/nginx/http.d/default.conf:rw
+    - /containers/cgit/cgitrc:/etc/cgitrc:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+  cgit2:
+    build:
+      context: ./containers/cgit
+      dockerfile: Dockerfile3
+      network: host
+    container_name: cgit2
+    hostname: cgit2
+    image: cgit2
+    ports:
+    - 18080:80
+    volumes:
+    - /mnt/c/PROJECTS/bare/root:/var/www/localhost/htdocs/git
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+  gitblit:
+    build:
+      context: ./containers/gitblit
+      dockerfile: Dockerfile
+      network: host
+    container_name: gitblit
+    hostname: gitblit
+    image: gitblit
+    ports:
+    - 7777:8080
+    - 9418:9418
+    - 29418:29418
+    - 17000:17000
+    - 8443:8443
+    - 8085:8081
+    - 31000:30000
+    volumes:
+    - /mnt/c/PROJECTS:/projects
+    - /containers/gitblit/conf/gitblit.properties:/opt/gitblit/data/gitblit.properties:rw
+    - /containers/gitblit/conf/defaults.properties:/opt/gitblit/data/defaults.properties:rw
+    - /containers/gitblit/conf/users.conf:/opt/gitblit/data/users.conf:rw
+    - /containers/gitblit/conf/projects.conf:/opt/gitblit/data/projects.conf:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+  gitea:
+    build:
+      context: ./containers/gitea
+      dockerfile: Dockerfile
+      network: host
+    container_name: gitea
+    hostname: gitea
+    image: gitea
+    environment:
+    - GITEA__database__DB_TYPE=mysql
+    - GITEA__database__HOST=mysql
+    - GITEA__database__NAME=gitea
+    - GITEA__database__USER=gitea
+    - GITEA__database__PASSWD=Xxxnuxer13
+    volumes:
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    - /projects_gitea:/projects:rw
+    - /mnt/sdd1:/projects2:rw
+    - /containers/gitea/config/app.ini:/etc/gitea/app.ini
+    ports:
+    - 6000:3000
+    - 2244:2222
+    depends_on:
+    - mysql
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  gitea2:
+    build:
+      context: ./containers/gitea
+      dockerfile: Dockerfile4
+      network: host
+    container_name: gitea2
+    hostname: gitea2
+    image: gitea2:v1
+    environment:
+    - USER=gitea
+    - GITEA__database__DB_TYPE=mysql
+    - GITEA__database__HOST=mysql
+    - GITEA__database__NAME=gitea
+    - GITEA__database__USER=gitea
+    - GITEA__database__PASSWD=Xxxnuxer13
+    volumes:
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    - /projects_gitea:/projects:rw
+    - /containers/gitea/config/app1.ini:/opt/gitea/conf/app.ini:rw
+    - /containers/gitea/config/app1.ini:/opt/gitea/custom/conf/app.ini:rw
+    ports:
+    - 9900:3000
+    - '2244:22'
+    depends_on:
+    - mysql
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    cap_add:
+    - NET_BIND_SERVICE
+  gogs:
+    build:
+      context: ./containers/gogs
+      dockerfile: dockerfile2
+      network: host
+    container_name: gogs
+    hostname: gogs
+    image: gogs:v1
+    environment:
+    - RUN_CROND=true
+    volumes:
+    - /etc/timezone:/etc/timezone:ro
+    - /etc/localtime:/etc/localtime:ro
+    - /mnt/c/PROJECTS/bare:/projects/bare:rw
+    - /containers/gogs/data/gogs/conf/app.ini:/opt/gogs/custom/conf/app.ini:rw
+    ports:
+    - '10022:22'
+    - 10880:3000
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  kallithea:
+    build:
+      context: ./containers/kallithea
+      dockerfile: Dockerfile3
+      network: host
+    container_name: kallithea
+    hostname: kallithea
+    image: kallithea:v3
+    env_file:
+    - ./.env
+    volumes:
+    - /mnt/c/PROJECTS:/kallithea/repos:rw
+    - /containers/kallithea/logs:/kallithea/logs:rw
+    - /containers/kallithea/config:/kallithea/config:rw
+    ports:
+    - 6666:80
+    - 5004:5000
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  airsonic:
+    build:
+      context: ./containers/airsonic
+      dockerfile: Dockerfile1
+    container_name: airsonic
+    hostname: airsonic
+    image: airsonic
+    ports:
+    - 4040:4040
+    volumes:
+    - /data/airsonic:/airsonic/data
+    - /data/musics:/airsonic/music
+    - /data/airsonic/playlists:/airsonic/playlists
+    - /data/airsnoic/podcasts:/airsonic/podcasts
+    - /mnt/sdb2/MUSICS:/musics:reshared
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+  navidrome:
+    build:
+      context: ./containers/navidrome
+      dockerfile: Dockerfile
+    container_name: navidrome
+    hostname: navidrome
+    image: navidrome
+    ports:
+    - 4533:4533
+    restart: unless-stopped
+    environment:
+      ND_LOGLEVEL: debug
+    volumes:
+    - /data/navidrome:/data:rw
+    - /mnt/sdb2/MUSICS:/music:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+  webmin:
+    build:
+      context: ./containers/webmin
+      dockerfile: Dockerfile
+    container_name: webmin
+    hostname: webmin
+    image: webmin
+    privileged: true
+    network_mode: host
+    volumes:
+    - /etc:/etc
+    - /var:/var
+    - /lib/modules:/lib/modules
+    - /usr:/usr
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+    ports:
+    - 10000:10000
+  registry:
+    build:
+      context: ./containers/registry
+      dockerfile: Dockerfile
+    image: register
+    container_name: register
+    hostname: register
+    ports:
+    - 5000:5000
+    restart: always
+    volumes:
+    - /containers/registry/data:/var/lib/registry
+    - /containers/registry/certs:/certs
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  registry-ui:
+    build:
+      context: ./containers/registry
+      dockerfile: Dockerfile_joxit_ui
+    image: register-ui
+    container_name: registry-ui
+    hostname: registry-ui
+    restart: always
+    ports:
+    - 6060:80
+    environment:
+    - DELETE_IMAGES=true
+    - SHOW_CONTENT_DIGEST=true
+    - CATALOG_ELEMENTS_LIMIT=100
+    - REGISTRY_TITLE=Local Registry on LICFACE
+    - REGISTRY_URL=http://register:5000
+    - REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt
+    - REGISTRY_HTTP_TLS_KEY=/certs/domain.key
+    depends_on:
+    - registry
+  portainer:
+    build:
+      context: ./containers/portainer
+      dockerfile: Dockerfile
+    image: portainer
+    container_name: portainer
+    hostname: portainer
+    restart: always
+    ports:
+    - 9999:8000
+    - 10443:9443
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /containers/portainer/data:/data
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+  squid:
+    build:
+      context: ./containers/squid
+      dockerfile: Dockerfile1
+    hostname: squid
+    container_name: squid
+    image: squid:v1
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    volumes:
+    - /containers/squid/logs:/var/log/squid:rw
+    - /containers/squid/data:/var/spool/squid:rw
+    - /containers/squid/config/squid.conf:/etc/squid/squid.conf:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 3128:3128
+    - '5222:22'
+    environment:
+    - SQUID_USER=admin
+    - SQUID_PASS=admin
+    - SQUID_PORT=3128
+    - TZ=Asia/Jakarta
+  nextcloud:
+    build:
+      context: ./containers/nextcloud
+      dockerfile: Dockerfile1
+      network: host
+    hostname: nextcloud
+    container_name: nextcloud
+    image: nextcloud
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    volumes:
+    - /containers/nextcloud/config:/config:rw
+    - /containers/nextcloud/data:/data:rw
+    - /lib/modules:/lib/modules
+    - /proc:/proc
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    networks:
+    - cloud
+    - default
+    privileged: true
+    depends_on:
+    - mysql
+    - redis
+  webui-aria2:
+    build:
+      context: ./containers/webui-aria2
+      dockerfile: Dockerfile1
+    hostname: webui-aria2
+    container_name: webui-aria2
+    image: webui-aria2:v1
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    tty: true
+    logging:
+      driver: local
+      options:
+        max-size: 20m
+        max-file: 3
+    volumes:
+    - /downloads:/downloads:rw
+    - /mnt/c/DOWNLOADS:/download2:rw
+    - /containers/webui-aria2/conf/aria2.conf:/root/.config/aria2/aria2.conf:rw
+    - /containers/webui-aria2/conf/aria2.conf:/etc/aria2.conf:rw
+    ports:
+    - 6800:6800
+    - 6801:8080
+  aria2:
+    build:
+      context: ./containers/aria2
+      dockerfile: Dockerfile
+      network: host
+    hostname: aria2
+    container_name: aria2
+    image: aria2
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    volumes:
+    - /downloads:/downloads
+    ports:
+    - 6800:6800
+  httpd:
+    volumes:
+    - ./:/usr/html
+    ports:
+    - 11112:80
+    command: /bin/busybox httpd -f -p 80 -h /usr/html
+    build:
+      context: ./containers/httpd
+      dockerfile: Dockerfile
+      network: host
+    hostname: httpd
+    container_name: httpd
+    image: httpd
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  ntfy:
+    build:
+      context: ./containers/ntfy
+      dockerfile: Dockerfile
+    container_name: ntfy
+    hostname: ntfy
+    image: ntfy
+    restart: always
+    env_file:
+    - ./.env
+    environment:
+    - TC=Asia/Jakarta
+    ports:
+    - 9016:9000
+    - 517:514/udp
+    - 517:514
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+          cpus: '1.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  ntfy2:
+    build:
+      context: ./containers/ntfy
+      dockerfile: Dockerfile2
+    image: ntfy2
+    container_name: ntfy2
+    hostname: ntfy2
+    command:
+    - serve
+    environment:
+    - TZ=Asia/Jakarta
+    volumes:
+    - /containers/var/cache/ntfy:/var/cache/ntfy
+    - /containers/ntfy/etc/ntfy:/etc/ntfy
+    ports:
+    - 89:80
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '"healthy"\s*:\s*true'
+        || exit 1
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 100m
+          cpus: '1.0'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  npm:
+    build:
+      context: ./containers/nginx-proxy-manager
+      dockerfile: Dockerfile
+      network: host
+    container_name: nginx-proxy-manager
+    hostname: npm
+    image: npm
+    restart: unless-stopped
+    ports:
+    - 80:80
+    - 443:443
+    - 90:81
+    environment:
+      DB_MYSQL_HOST: mysql
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: npm
+      DB_MYSQL_PASSWORD: Xxxnuxer13
+      DB_MYSQL_PASSWORD__FILE: /run/secrets/MYSQL_PWD
+      DB_MYSQL_NAME: npm
+    volumes:
+    - /containers/nginx-proxy-manager/data:/data:rw
+    - /containers/nginx-proxy-manager/letsencrypt:/etc/letsencrypt:rw
+    secrets:
+    - MYSQL_PASS
+    depends_on:
+    - mysql
+    networks:
+    - npm
+    - default
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  caddy:
+    build:
+      context: ./containers/caddy
+      dockerfile: Dockerfile
+      network: host
+    container_name: caddy
+    hostname: caddy
+    image: caddy
+    cap_add:
+    - NET_ADMIN
+    ports:
+    - 80:80
+    - 443:443
+    - 443:443/udp
+    volumes:
+    - /containers/caddy/conf:/etc/caddy:rw
+    - /containers/caddy/site:/srv:rw
+    - /containers/caddy/data:/data:rw
+    - /containers/caddy/config:/config:rw
+    networks:
+    - caddy
+    - default
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  privoxy:
+    build:
+      context: ./containers/privoxy
+      dockerfile: Dockerfile
+    hostname: privoxy
+    container_name: privoxy
+    image: privoxy
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    volumes:
+    - /containers/privoxy/logs:/var/log/privoxy:rw
+    - /containers/privoxy/config:/etc/privoxy:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    ports:
+    - 8118:8118
+    environment:
+    - TZ=Asia/Jakarta
+  gitbucket:
+    build:
+      context: ./containers/gitbucket
+      dockerfile: Dockerfile2
+      network: host
+    container_name: gitbucket
+    hostname: gitbucket
+    image: gitbucket
+    ports:
+    - 7788:8080
+    volumes:
+    - /mnt/c/PROJECTS/bare/gitbucket:/root/.gitbucket/repositories:rw
+    - /projects:/projects2:rw
+    - /containers/gitbucket/conf/database.conf:/root/.gitbucket/database.conf:rw
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '1.0'
+  verdaccio:
+    build:
+      context: ./containers/verdaccio
+      dockerfile: Dockerfile
+    container_name: verdaccio
+    hostname: verdaccio
+    image: verdaccio
+    volumes:
+    - /containers/verdaccio/storage:/verdaccio/storage:rw
+    - /containers/verdaccio/config:/verdaccio/conf:rw
+    environment:
+    - VERDACCIO_PORT=4873
+    ports:
+    - 4873:4873
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  pyload:
+    build:
+      context: ./containers/pyload
+      dockerfile: Dockerfile
+    container_name: pyload
+    hostname: pyload
+    image: pyload
+    ports:
+    - 4874:8000
+    - 9666:9666
+    environment:
+    - TZ=Asia/Jakarta
+    volumes:
+    - /containers/pyload/config:/config
+    - /downloads:/downloads
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  jdownloader:
+    build:
+      context: ./containers/jdownload
+      dockerfile: Dockerfile
+    image: jdownloader
+    container_name: jdownloader
+    hostname: jdownloader
+    volumes:
+    - /containers/jdownload/config:/opt/JDownloader/app/cfg:rw
+    - /downloads:/opt/JDownloader/Downloads:rw
+    - /containers/jdownload/logs:/opt/JDownloader/app/logs:rw
+    - /containers/jdownload/extensions:/opt/JDownloader/app/extensions:rw
+    - /etc/localtime:/etc/localtime:ro
+    environment:
+      MYJD_USER: root@licface.com
+      MYJD_PASSWORD: Xxxnuxer13
+      MYJD_DEVICE_NAME: goofy
+      XDG_DOWNLOAD_DIR: /opt/JDownloader/downloads
+    ports:
+    - 3129:3129
+    - 9665:9665
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  jdownloader2:
+    build:
+      context: ./containers/jdownload
+      dockerfile: Dockerfile2
+    image: jdownloader2
+    container_name: jdownloader2
+    hostname: jdownloader2
+    volumes:
+    - /containers/jdownload/config2:/config:rw
+    - /downloads:/output:rw
+    environment:
+      MYJDOWNLOADER_USER: root@licface.com
+      MYJDOWNLOADER_PASSWORD: Xxxnuxer13
+      CONTAINER_DEBUG: 1
+      DARK_MODE: 1
+      WEB_AUDIO: 1
+      VNC_PASSWORD: Xxxnuxer13
+      TZ: Asia/Jakarta
+    ports:
+    - 3130:3129
+    - 5800:5800
+    - 5902:5900
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  pypihub:
+    build:
+      context: ./containers/pypihub
+      dockerfile: Dockerfile
+      network: host
+    container_name: pypihub
+    hostname: pypihub
+    image: pypihub
+    env_file:
+    - ./.env
+    volumes:
+    - /mnt/c/PYTHON_MODULES:/packages:rw
+    - /mnt/c/PYTHON_MODULES:/caches:rw
+    - /containers/pypihub/settings.py:/pypihub/settings.py:rw
+    - /containers/pypihub/database.py:/pypihub/database.py:rw
+    - /containers/pypihub/pypihub.ini:/pypihub/pypihub.ini:rw
+    ports:
+    - 5003:5000
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  mopidy:
+    build:
+      context: ./containers/mopidy
+      dockerfile: Dockerfile
+    image: mopidy
+    container_name: mopidy
+    devices:
+    - /dev/snd
+    ports:
+    - 6602:6600
+    - 6681:6680
+    volumes:
+    - /containers/mopidy/config:/root/.config/
+    - /mnt/licface/c/MUSICS:/data/music/
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    tty: true
+    stdin_open: true
+  rompr2:
+    build:
+      context: ./containers/rompr
+      dockerfile: Dockerfile4
+      args:
+        ROMPR_VERSION: 2.19
+    container_name: rompr2
+    hostname: rompr2
+    image: rompr:v2
+    volumes:
+    - /containers/rompr:/RompR:rw
+    ports:
+    - 33002:80
+    tty: true
+    stdin_open: true
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  kismet:
+    build:
+      context: ./containers/kismet
+      dockerfile: Dockerfile
+      network: host
+      args:
+        OMZ_REPO: http://gogs.container.com/root/ohmyzsh
+        POWERLEVEL10K_REPO: http://gogs.container.com/root/powerlevel10k
+        DISPLAY: 222.222.222.7:0.0
+    image: kismet
+    container_name: kismet
+    hostname: kismet
+    env_file:
+    - ./.env
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+          cpus: '1.5'
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+    network_mode: host
+    pid: host
+    privileged: true
+    devices:
+    - /dev/bus/usb:/dev/bus/usb
+    - /dev/fuse
+    tty: true
+    volumes:
+    - /var/log/kismet:/logs:rw
+  terminalizer:
+    build:
+      context: ./containers/terminalizer
+      dockerfile: Dockerfile
+    container_name: terminalizer
+    hostname: terminalizer
+    image: terminalizer
+    env_file:
+    - ./.env
+    volumes:
+    - /projects2:/projects:rw
+    - /mnt/c:/mnt/c:rw
+    ports:
+    - 22022:22022
+    - 22021:22021
+    - 22023:22023
+    - 22024:22024
+    - 22025:22025
+    tty: true
+    stdin_open: true
+    privileged: true
+    cap_add:
+    - SYS_ADMIN
+    - NET_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  terminalizer2:
+    build:
+      context: ./containers/terminalizer
+      dockerfile: Dockerfile2
+    container_name: terminalizer2
+    hostname: terminalizer2
+    image: terminalizer2
+    env_file:
+    - ./.env
+    volumes:
+    - /projects2:/projects:rw
+    - /mnt/c:/mnt/c:rw
+    ports:
+    - 22026:22026
+    - 22027:22027
+    - 22028:22028
+    - 22029:22029
+    - 22030:22030
+    tty: true
+    stdin_open: true
+    privileged: true
+    cap_add:
+    - SYS_ADMIN
+    - NET_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  tubearchivist:
+    build:
+      context: ./containers/tubearchivist
+      dockerfile: Dockerfile
+    container_name: tubearchivist
+    hostname: tubearchivist
+    image: tubearchivist
+    ports:
+    - 8889:8000
+    volumes:
+    - /data/Tutorials/youtube:/youtube:rw
+    - /data/Tutorials/youtube/cache:/cache:rw
+    environment:
+    - ES_URL=http://elasticsearch:9200
+    - REDIS_CON=redis://:Xxxnuxer13@redis:6379
+    - HOST_UID=1000
+    - HOST_GID=1000
+    - TA_HOST=http://tubearchivist.local:8000
+    - TA_USERNAME=tube
+    - TA_PASSWORD=Xxxnuxer13
+    - ELASTIC_PASSWORD=Xxxnuxer13
+    - TZ=Asia/Jakarta
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/api/health
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+    - elasticsearch
+    - redis
+    tty: true
+    stdin_open: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  archivist-es:
+    build:
+      context: ./containers/tubearchivist
+      dockerfile: Dockerfile_es
+    image: tubearchivist-es
+    container_name: archivist-es
+    hostname: archivist-es
+    environment:
+    - ELASTIC_PASSWORD=Xxxnuxer13
+    - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    - xpack.security.enabled=true
+    - discovery.type=single-node
+    - path.repo=/usr/share/elasticsearch/data/snapshot
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+    - /containers/tubearchivist/elasticsearch/data:/usr/share/elasticsearch/data:rw
+    expose:
+    - '9200'
+    - '9300'
+    ports:
+    - 9600:9200
+    - 9700:9300
+    tty: true
+    stdin_open: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:514
+        tag: docker/{{.Name}}
+  pulseaudio:
+    build:
+      context: ./containers/pulseaudio
+      dockerfile: Dockerfile
+      network: host
+    image: pulseaudio
+    container_name: pulseaudio
+    hostname: pulseaudio
+    tty: true
+    privileged: true
+    network_mode: host
+    devices:
+    - /dev/snd:/dev/snd
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:518
+        tag: docker/{{.Name}}
+  jackd:
+    build:
+      context: ./containers/jackd
+      dockerfile: Dockerfile
+      network: host
+    image: jackd
+    container_name: jackd
+    hostname: jackd
+    extra_hosts:
+    - jackd:127.0.1.1
+    tty: true
+    privileged: true
+    network_mode: host
+    devices:
+    - /dev/snd:/dev/snd
+    tmpfs:
+    - /run/user/1001:exec,mode=0700,uid=1001,gid=1001
+    volumes:
+    - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    - /var/run/dbus:/var/run/dbus:ro
+    - /dev/snd:/dev/snd
+    - /run/dbus:/run/dbus
+    environment:
+    - XDG_RUNTIME_DIR=/run/user/1001
+    - PULSE_SERVER=unix:/run/user/1000/pulse/native
+    cap_add:
+    - SYS_PTRACE
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:518
+        tag: docker/jack-audio-server
+    restart: unless-stopped
+  ubuntu-24.10-zsh-omz: *id001
+  auth-server:
+    build:
+      context: ./containers/auth-server
+      dockerfile: Dockerfile
+      network: host
+      args:
+        OMZ_REPO: http://gogs.container.com/root/ohmyzsh
+        SRC_REPO: http://gogs.container.com/root/auth-server
+        POWERLEVEL10K_REPO: http://gogs.container.com/root/powerlevel10k
+        DISPLAY: 222.222.222.7:0.0
+    image: auth-server
+    container_name: auth-server
+    hostname: auth-server
+    tty: true
+    logging:
+      driver: syslog
+      options:
+        syslog-address: udp://222.222.222.7:518
+        tag: docker/{{.Name}}
+networks:
+  npm: null
+  caddy: null
+  cloud:
+    name: cloud
+volumes:
+  registry_data: null
+  mongo-data: null
+  mongo-config: null
+  repo-cache: null
+  pg_data: null
+  mysql_data: null
+  pg_run: null
+  odoo_data: null
+  traefik_conf: null
+  traefik_conf_acme: null
+  laravel_data: null
+  mail_data: null
+  redis_data: null
+  elasticsearch_data: null
+  elasticsearch_logs: null
+  etcd_data: null
+secrets:
+  MYSQL_PASS:
+    file: /containers/secrets/mysql_pass.txt
+  GITHUB_TOKEN:
+    file: /containers/secrets/github_token.txt
+  myjd-user:
+    file: ~/jdownloader/secrets/myjd_user.txt
+  myjd-password:
+    file: ~/jdownloader/secrets/myjd_password.txt

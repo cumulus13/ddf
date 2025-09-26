@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+build-keygen -a -n
+# Define the APK repo directory (mapped from the host)
+# APK_DIR="/apk-repo/x86_64"
+#APK_DIR="/var/cache/apk"
+
+# Ensure the APK repo directory exists
+#mkdir -p "$APK_DIR"
+
+# Create APK index (if APKs are present)
+#if [ "$(ls -A $APK_DIR/v3.20/*.apk 2>/dev/null)" ]; then
+#    echo "Creating APK index..."
+#    apk index -o "$APK_DIR/v3.20/APKINDEX.tar.gz" "$APK_DIR"/v3.20/*.apk
+#    abuild-sign "$APK_DIR/v3.20/APKINDEX.tar.gz" || echo "Skipping APK signing (no key found)"
+#else
+#    echo "No APK files found to index."
+#fi
+
+rsyslogd -N1
+rsyslogd -f /etc/rsyslog.conf -i /var/run/rsyslogd_$(date '+%Y%m%d_%H%M%S').pid
+# Run nginx
+echo "Starting nginx..."
+# nginx -g 'daemon off;'
+nginx
+tail -f /dev/null

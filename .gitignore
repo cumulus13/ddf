@@ -15,3 +15,6 @@ build/
 traceback.log
 __pycache__/
 bck/
+
+# Added entries (1 items)
+ddf.sublime-project
