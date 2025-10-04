@@ -1,0 +1,26 @@
+*.pyc
+*.bak
+*.zip
+*.rar
+*.7z
+*.mp3
+*.wav
+*.sublime-workspace
+.hg/
+build/
+*.hgignore
+*.hgtags
+*dist/
+*.egg-info/
+traceback.log
+__pycache__/
+bck/
+
+# Added entries (1 items)
+ddf.sublime-project
+
+# Added entries (1 items)
+backups/
+
+# Added entries (1 items)
+cpm.ini
