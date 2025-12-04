@@ -1,0 +1,179 @@
+Installation
+============
+
+Requirements
+------------
+
+DDF requires Python 3.8 or higher.
+
+Basic Installation
+------------------
+
+The simplest way to install DDF is using pip:
+
+.. code-block:: bash
+
+   pip install ddf
+
+This will install the core dependencies needed for basic functionality.
+
+Optional Dependencies
+---------------------
+
+DDF supports several optional feature sets that can be installed as needed.
+
+All Features
+~~~~~~~~~~~~
+
+To install all optional features:
+
+.. code-block:: bash
+
+   pip install ddf[all]
+
+Cache Backends
+~~~~~~~~~~~~~~
+
+For Redis and Memcached support:
+
+.. code-block:: bash
+
+   pip install ddf[cache]
+
+This includes:
+
+* ``redis`` - Redis cache backend
+* ``pymemcache`` - Memcached cache backend
+
+Server Mode
+~~~~~~~~~~~
+
+For server mode with system tray integration:
+
+.. code-block:: bash
+
+   pip install ddf[server]
+
+This includes:
+
+* ``pystray`` - System tray icon support
+* ``Pillow`` - Image processing for tray icons
+* ``plyer`` - Cross-platform notifications
+
+File Monitoring
+~~~~~~~~~~~~~~~
+
+For real-time file change monitoring:
+
+.. code-block:: bash
+
+   pip install ddf[monitoring]
+
+This includes:
+
+* ``watchdog`` - File system event monitoring
+
+Development Installation
+------------------------
+
+For development, clone the repository and install in editable mode:
+
+.. code-block:: bash
+
+   git clone https://github.com/cumulus13/ddf.git
+   cd ddf
+   pip install -e ".[dev]"
+
+This installs additional development dependencies:
+
+* ``pytest`` - Testing framework
+* ``pytest-cov`` - Coverage reporting
+* ``black`` - Code formatting
+* ``flake8`` - Linting
+* ``mypy`` - Type checking
+* ``sphinx`` - Documentation generation
+
+Verification
+------------
+
+Verify the installation:
+
+.. code-block:: bash
+
+   ddf --version
+
+You should see the version number displayed.
+
+Platform-Specific Notes
+-----------------------
+
+Windows
+~~~~~~~
+
+On Windows, you may need to add Python's Scripts directory to your PATH:
+
+.. code-block:: bash
+
+   # PowerShell
+   $env:PATH += ";C:\Python312\Scripts"
+   
+   # Command Prompt
+   set PATH=%PATH%;C:\Python312\Scripts
+
+For nano editor support on Windows:
+
+.. code-block:: bash
+
+   # Using MSYS2
+   pacman -S nano
+
+Linux
+~~~~~
+
+On Linux, you may need to install system dependencies for some features:
+
+.. code-block:: bash
+
+   # Ubuntu/Debian
+   sudo apt-get install python3-dev libmemcached-dev
+   
+   # Fedora/RHEL
+   sudo dnf install python3-devel libmemcached-devel
+   
+   # Arch Linux
+   sudo pacman -S python libmemcached
+
+macOS
+~~~~~
+
+On macOS, use Homebrew for system dependencies:
+
+.. code-block:: bash
+
+   brew install libmemcached
+
+Upgrading
+---------
+
+To upgrade to the latest version:
+
+.. code-block:: bash
+
+   pip install --upgrade ddf
+
+To upgrade with all features:
+
+.. code-block:: bash
+
+   pip install --upgrade ddf[all]
+
+Uninstallation
+--------------
+
+To uninstall DDF:
+
+.. code-block:: bash
+
+   pip uninstall ddf
+
+Configuration files (``ddf.ini``) and backups are not removed during uninstallation.

@@ -24,3 +24,5 @@ backups/
 
 # Added entries (1 items)
 cpm.ini
+# PT backup directory
+.pt/

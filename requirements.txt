@@ -1,0 +1,8 @@
+pyyaml>=6.0
+rich>=13.0.0
+richcolorlog>=0.1.0
+configset>=0.1.0
+rich-argparse>=1.0.0
+clipboard>=0.0.4
+gntplib 
+redis>=4.0.0

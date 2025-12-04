@@ -1,45 +1,103 @@
-# DDF - Docker Compose File Utility
+# DDF - Enhanced Docker Compose Tools/Utility
 
-A powerful command-line utility for analyzing, managing, and editing Docker Compose files with rich terminal output and advanced features.
+[![License](https://img.shields.io/github/license/cumulus13/ddf.svg)](https://github.com/cumulus13/ddf/blob/main/LICENSE)
+[![Documentation Status](https://readthedocs.org/projects/ddf/badge/?version=latest)](https://ddf.readthedocs.io/en/latest/?badge=latest)
 
-[![Screenshot](./screenshot.png)](./screenshot.png)
+**DDF** is a powerful command-line tool for analyzing, managing, and editing Docker Compose files configurations with advanced features like intelligent caching, server mode operation, automatic backups, and sophisticated file editing capabilities.
 
-## Features
+<p align="center">
+  <img src="https://raw.githubusercontent.com/cumulus13/ddf/master/logo.png" alt="Logo">
+</p>
+<br/>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/cumulus13/ddf/master/screenshot.png" alt="Screenshot">
+</p>
+
+
+## 🚀 Features
 
 - **Service Management**: List, view, edit, duplicate, copy, rename, remove, and create services
-- **Port Analysis**: Find duplicate ports, check port usage across services
+- **Port Analysis/Management**: Find duplicate ports **: Find duplicate ports and resolve conflicts easily, check port usage across services
 - **Resource Inspection**: View volumes, devices, hostnames, and port configurations
 - **Dockerfile Integration**: Read, edit, copy, and set Dockerfiles associated with services
 - **Entrypoint Management**: View and edit entrypoint scripts
 - **File Management**: Read and edit files referenced in Dockerfile COPY commands
+- **Pattern Matching**: Powerful wildcard and regex support for service names
+- **File Monitoring**: Real-time file change detection for non-blocking editors
 - **Rich Terminal Output**: Colorized syntax highlighting and formatted display
 - **Pattern Matching**: Support for wildcards, regex, and substring matching for service names
-- **File Caching**: Intelligent caching system for improved performance
-- **Version Support**: Display script version from `__version__.py`
+- **Intelligent Caching**: Multiple cache backends (Redis, Memcached, Pickle) for improved performance
+- **Advanced Editing**: Support for multiple editors with real-time change detection
+- **Automatic Backups**: Create and restore backups before making changes
+- **Detached Mode**: Open editors in separate terminal windows
+- **Server Mode**: Background server with system tray integration for seamless operation
 
-## Installation
+
+## 📦 Installation
 
 ### Prerequisites
 
 - Python 3.6+
 - Required Python packages:
   ```bash
-  pip install pyyaml rich pydebugger configset rich-argparse clipboard
+  pip install pyyaml rich pydebugger configset rich-argparse clipboard gntplib redis richcolorlog
   ```
 
 ### Setup
 
-1. Clone or download the `ddf.py` script
-2. Make it executable (Linux/macOS):
-   ```bash
-   chmod +x ddf.py
-   ```
-3. Create a configuration file `ddf.ini` in the same directory (optional; auto-created if missing)
-4. Add to your PATH for global access (optional)
+```bash
+   pip install git+https://github.com/cumulus13/ddf
+```
 
-## Configuration
+#### With All Features
 
-Create a `ddf.ini` file in the same directory as `ddf.py`:
+```bash
+   pip install git+https://github.com/cumulus13/ddf[all]
+```
+
+#### Specific Features
+
+```bash
+# Cache backends (Redis, Memcached)
+pip install git+https://github.com/cumulus13/ddf[cache]
+
+# Server mode with tray icon
+pip install git+https://github.com/cumulus13/ddf[server]
+
+# File monitoring
+pip install git+https://github.com/cumulus13/ddf[monitoring]
+```
+
+## 🔧 Configuration
+
+There is `ddf.ini` file in the same directory as `ddf.py` edit as you want or Create new one `ddf.ini` file in the same directory as `ddf.py`:
+
+```ini
+[docker-compose]
+file = /path/to/docker-compose.yml
+root_path = /path/to/project
+
+[editor]
+names = nvim, vim, nano
+
+[cache]
+backend = redis
+enabled = true
+ttl = 3600
+redis_host = localhost
+redis_port = 6379
+
+[backup]
+directory = /path/to/backups
+
+[server]
+active = false
+host = 127.0.0.1
+port = 9876
+```
+
+
+There is `ddf.ini` file in the same directory as `ddf.py` edit as you want:
 
 ```ini
 [docker-compose]
@@ -48,11 +106,34 @@ root_path = /path/to/your/project/root
 
 [editor]
 names = nvim,nano,vim
+...
 ```
 
 - `file`: Path to the default Docker Compose YAML file.
 - `root_path`: Project root directory (defaults to `c:\PROJECTS` on Windows if exists, else current directory).
 - `names`: Comma-separated list of preferred editors.
+
+## 🎯 Quick Start
+
+```bash
+# List all services
+ddf -L
+
+# Find duplicate ports
+ddf
+
+# Edit a service
+ddf myservice -E
+
+# Edit Dockerfile
+ddf myservice -e
+
+# Show service details
+ddf myservice -d
+
+# Find port usage
+ddf -f 8080
+```
 
 ## Usage
 
@@ -62,153 +143,197 @@ names = nvim,nano,vim
 python ddf.py [service_name] [options]
 ```
 
-### Command Options
+### 🖥️ Server Mode
 
-| Option | Description |
-|--------|-------------|
-| `-c, --file FILE` | Path to Docker Compose YAML file |
-| `-l, --list` | List ports for the specified service |
-| `-d, --detail` | Show full configuration for the service |
-| `-f, --find PORT` | Find which services use a specific port |
-| `-p, --port PORT` | Check if a port is duplicated across services |
-| `-D, --device` | Show devices for service(s) |
-| `-vol, --volumes` | Show volumes for service(s) |
-| `-P, --list-port` | List all ports for a service (same as `-l`) |
-| `-L, --list-service-name` | List all service names, optionally with `-F` filter |
-| `-r, --dockerfile` | Read and display Dockerfile for service |
-| `-e, --edit-dockerfile` | Edit Dockerfile for service (creates new if missing) |
-| `-sd, --set-dockerfile PATH` | Set Dockerfile path for service |
-| `-E, --edit-service` | Edit service configuration |
-| `-en, --entrypoint` | Read and display entrypoint script |
-| `-ed, --edit-entrypoint` | Edit entrypoint script |
-| `-cs, --copy-service` | Copy service configuration to clipboard |
-| `-cd, --copy-dockerfile` | Copy Dockerfile content to clipboard |
-| `-dd, --duplicate-service NEW_NAME` | Duplicate service with new name |
-| `-rn, --rename-service NEW_NAME` | Rename service |
-| `-rm, --remove-service` | Remove service from compose file |
-| `-a, --all` | Show all services' details with `-f` |
-| `-nl, --no-line-numbers` | Disable line numbers in syntax highlighting |
-| `-hn, --hostname` | Show hostname(s) for service(s) |
-| `-n, --new` | Create a new service |
-| `-F, --filter PATTERN` | Filter services by regex, wildcard, or substring |
-| `-v, --version` | Show script version |
-| `-ef, --edit-file FILENAME` | Edit file referenced in Dockerfile COPY command |
-| `-rf, --read-file FILENAME` | Read file referenced in Dockerfile COPY command |
-| `--theme THEME` | Set syntax highlighting theme (default: fruity) |
+Start DDF in server mode for background operation:
 
-### Examples
+```bash
+# Start server
+ddf --server-mode &
 
-#### List all services
+# Enable in config
+cat >> ddf.ini << EOF
+[server]
+active = true
+EOF
+
+# All editing commands now run through server
+ddf myservice -E
+```
+## 📚 Documentation
+
+Full documentation is available at [ddf.readthedocs.io](https://ddf.readthedocs.io)
+
+- [Installation Guide](https://ddf.readthedocs.io/en/latest/installation.html)
+- [Quick Start](https://ddf.readthedocs.io/en/latest/quickstart.html)
+- [Configuration](https://ddf.readthedocs.io/en/latest/configuration.html)
+- [Usage Guide](https://ddf.readthedocs.io/en/latest/usage.html)
+- [API Reference](https://ddf.readthedocs.io/en/latest/api/core.html)
+
+
+## 💡 Usage Examples
+
+### Find and Fix Port Conflicts
+
+```bash
+# Find duplicates
+ddf
+
+# Output: ❌ web/8080/tcp --> api/8080/tcp
+
+# Inspect services
+ddf web -P
+ddf api -P
+
+# Edit service to fix
+ddf api -E
+```
+
+### Service Management
+
+```bash
+# Create new service
+ddf newservice -n
+
+# Duplicate service
+ddf oldservice -dd newservice
+
+# Rename service
+ddf oldname -rn newname
+
+# Remove service
+ddf myservice -rm
+```
+
+### List all services
 ```bash
 python ddf.py -L
 ```
 
-#### Filter services by pattern
+### Filter services by pattern
 ```bash
 python ddf.py -L -F web* app
 ```
 
-#### Show service details
+### Show service details
 ```bash
 python ddf.py webapp -d
 ```
 
-#### Find duplicate ports
+### Find duplicate ports
 ```bash
 python ddf.py
 ```
 
-#### Find services using port 8080
+### Find services using port 8080
 ```bash
 python ddf.py -f 8080
 ```
 
-#### Check if port 3000 is duplicated
+### Check if port 3000 is duplicated
 ```bash
 python ddf.py -p 3000
 ```
 
-#### List ports for a service
+### List ports for a service
 ```bash
 python ddf.py webapp -l
 ```
 
-#### Show volumes for services with "web" in name
+### Show volumes for services with "web" in name
 ```bash
 python ddf.py web -vol
 ```
 
-#### Show hostnames
+### Show hostnames
 ```bash
 python ddf.py webapp -hn
 ```
 
-#### Edit a service configuration
+### Edit a service configuration
 ```bash
 python ddf.py webapp -E
 ```
 
-#### Read Dockerfile for a service
+### Advanced Editing
+
+```bash
+# Edit in detached terminal
+ddf myservice -E -dt
+
+# Edit multiple services simultaneously
+ddf service1 -E -dt
+ddf service2 -E -dt
+ddf service3 -E -dt
+
+# Edit Dockerfile
+ddf myservice -e
+
+# Edit entrypoint script
+ddf myservice -ed
+```
+
+### Read Dockerfile for a service
 ```bash
 python ddf.py webapp -r
 ```
 
-#### Edit Dockerfile
+### Edit Dockerfile
 ```bash
 python ddf.py webapp -e
 ```
 
-#### Set Dockerfile path
+### Set Dockerfile path
 ```bash
 python ddf.py webapp -sd ./custom/Dockerfile
 ```
 
-#### Edit entrypoint script
+### Edit entrypoint script
 ```bash
 python ddf.py webapp -ed
 ```
 
-#### Read file from Dockerfile COPY
+### Read file from Dockerfile COPY
 ```bash
 python ddf.py webapp -rf entrypoint.sh
 ```
 
-#### Edit file from Dockerfile COPY
+### Edit file from Dockerfile COPY
 ```bash
 python ddf.py webapp -ef config.conf
 ```
 
-#### Create a new service
+### Create a new service
 ```bash
 python ddf.py new-service -n
 ```
 
-#### Duplicate a service
+### Duplicate a service
 ```bash
 python ddf.py webapp -dd webapp-staging
 ```
 
-#### Rename a service
+### Rename a service
 ```bash
 python ddf.py webapp -rn webapp-prod
 ```
 
-#### Copy service to clipboard
+### Copy service to clipboard
 ```bash
 python ddf.py webapp -cs
 ```
 
-#### Copy Dockerfile to clipboard
+### Copy Dockerfile to clipboard
 ```bash
 python ddf.py webapp -cd
 ```
 
-#### Remove a service
+### Remove a service
 ```bash
 python ddf.py webapp -rm
 ```
 
-#### Show version
+### Show version
 ```bash
 python ddf.py -v
 ```
@@ -301,17 +426,19 @@ webapp:
 - Some features require specific Docker Compose file structures
 - File paths in COPY commands must be resolvable relative to build context
 
-## Contributing
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## License
+## 📝 License
 
-This project is open source. Please check the license file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
@@ -330,7 +457,8 @@ For issues, feature requests, or questions:
 - The clipboard copy feature is useful for sharing configurations
 - Use `-F` with regex for precise service filtering
 
-## Author
+## 👤 Author
+
 [Hadi Cahyadi](mailto:cumulus13@gmail.com)
 
 [![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/cumulus13)
@@ -338,3 +466,13 @@ For issues, feature requests, or questions:
 [![Donate via Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cumulus13)
 
 [Support me on Patreon](https://www.patreon.com/cumulus13)
+
+## 🙏 Acknowledgments
+
+- Built with [Rich](https://github.com/Textualize/rich) for beautiful terminal output
+- Uses [PyYAML](https://pyyaml.org/) for YAML parsing
+- Inspired by the need for better Docker Compose management tools
+
+## 📊 Project Status
+
+DDF is actively maintained and under continuous development. Feel free to report issues or suggest features on the [issue tracker](https://github.com/cumulus13/ddf/issues).

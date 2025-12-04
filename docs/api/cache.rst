@@ -1,0 +1,338 @@
+Cache API
+=========
+
+This section documents the caching system.
+
+CacheManager Class
+------------------
+
+Unified cache manager supporting multiple backends.
+
+.. autoclass:: ddf.CacheManager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   
+   .. automethod:: __init__
+   .. automethod:: __new__
+   
+   Client Management
+   ~~~~~~~~~~~~~~~~~
+   
+   .. automethod:: _get_client
+   .. automethod:: cleanup
+   
+   Serialization
+   ~~~~~~~~~~~~~
+   
+   .. automethod:: _serialize
+   .. automethod:: _deserialize
+   .. automethod:: _get_pickle_path
+   
+   Cache Operations
+   ~~~~~~~~~~~~~~~~
+   
+   .. automethod:: get
+   .. automethod:: set
+   .. automethod:: delete
+   .. automethod:: invalidate_pattern
+   .. automethod:: flush_all
+   
+   Key Registry
+   ~~~~~~~~~~~~
+   
+   .. automethod:: _register_cache_key
+
+CacheConfig Class
+-----------------
+
+Configuration for cache backends.
+
+.. autoclass:: ddf.CacheConfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   
+   :param backend: Cache backend type
+   :param ttl: Time to live in seconds
+   :param enabled: Enable or disable caching
+   :param memcached_servers: List of Memcached servers
+   :param redis_host: Redis server host
+   :param redis_port: Redis server port
+   :param redis_password: Redis password
+   :param redis_db: Redis database number
+   :param pickle_dir: Directory for pickle cache files
+
+CacheBackend Enum
+-----------------
+
+Available cache backend types.
+
+.. autoclass:: ddf.CacheBackend
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   
+   .. attribute:: NONE
+      
+      No caching
+   
+   .. attribute:: PICKLE
+      
+      File-based pickle cache
+   
+   .. attribute:: MEMCACHED
+      
+      Memcached with JSON serialization
+   
+   .. attribute:: MEMCACHED_PICKLE
+      
+      Memcached with pickle serialization
+   
+   .. attribute:: REDIS
+      
+      Redis with JSON serialization
+   
+   .. attribute:: REDIS_PICKLE
+      
+      Redis with pickle serialization
+
+Cache Backend Comparison
+-------------------------
+
+Pickle Backend
+~~~~~~~~~~~~~~
+
+**Advantages:**
+
+* No external dependencies
+* Works offline
+* Simple setup
+* Cross-platform
+
+**Disadvantages:**
+
+* Not suitable for multi-process scenarios
+* Slower than in-memory caches
+* No automatic expiration
+
+**Use When:**
+
+* Development environment
+* Single-user scenarios
+* No Redis/Memcached available
+
+Redis Backend
+~~~~~~~~~~~~~
+
+**Advantages:**
+
+* Fast in-memory storage
+* Persistent data (optional)
+* Supports expiration (TTL)
+* Multi-process safe
+* Pattern-based invalidation
+
+**Disadvantages:**
+
+* Requires Redis server
+* Network overhead
+* Additional dependency
+
+**Use When:**
+
+* Production environment
+* Multi-user scenarios
+* Need persistence
+* Need advanced features
+
+Memcached Backend
+~~~~~~~~~~~~~~~~~
+
+**Advantages:**
+
+* Very fast
+* Simple protocol
+* Low memory overhead
+* Multi-process safe
+
+**Disadvantages:**
+
+* Requires Memcached server
+* No persistence
+* No pattern-based operations
+* Additional dependency
+
+**Use When:**
+
+* Need highest performance
+* Don't need persistence
+* Simple caching needs
+
+Configuration Examples
+----------------------
+
+Pickle Backend
+~~~~~~~~~~~~~~
+
+.. code-block:: ini
+
+   [cache]
+   backend = pickle
+   enabled = true
+   pickle_dir = /tmp/ddf_cache
+
+.. code-block:: python
+
+   from ddf import CacheConfig, CacheBackend
+   
+   config = CacheConfig(
+       backend=CacheBackend.PICKLE,
+       enabled=True,
+       pickle_dir="/tmp/ddf_cache"
+   )
+
+Redis Backend
+~~~~~~~~~~~~~
+
+.. code-block:: ini
+
+   [cache]
+   backend = redis
+   enabled = true
+   ttl = 3600
+   redis_host = localhost
+   redis_port = 6379
+   redis_password = secret
+   redis_db = 0
+
+.. code-block:: python
+
+   from ddf import CacheConfig, CacheBackend
+   
+   config = CacheConfig(
+       backend=CacheBackend.REDIS,
+       enabled=True,
+       ttl=3600,
+       redis_host="localhost",
+       redis_port=6379,
+       redis_password="secret",
+       redis_db=0
+   )
+
+Memcached Backend
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: ini
+
+   [cache]
+   backend = memcached
+   enabled = true
+   ttl = 3600
+   memcached_servers = localhost:11211, 192.168.1.100:11211
+
+.. code-block:: python
+
+   from ddf import CacheConfig, CacheBackend
+   
+   config = CacheConfig(
+       backend=CacheBackend.MEMCACHED,
+       enabled=True,
+       ttl=3600,
+       memcached_servers=[
+           ('localhost', 11211),
+           ('192.168.1.100', 11211)
+       ]
+   )
+
+Usage Examples
+--------------
+
+Basic Caching
+~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from ddf import CACHE
+   
+   # Set value
+   CACHE.set('key', 'value', ttl=3600)
+   
+   # Get value
+   value = CACHE.get('key')
+   
+   # Delete value
+   CACHE.delete('key')
+
+Pattern Invalidation
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from ddf import CACHE
+   
+   # Invalidate all keys starting with prefix
+   count = CACHE.invalidate_pattern('service:')
+   
+   print(f"Invalidated {count} keys")
+
+Flush All
+~~~~~~~~~
+
+.. code-block:: python
+
+   from ddf import CACHE
+   
+   # Flush all cache
+   CACHE.flush_all()
+
+Decorator Usage
+~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from ddf import cache_with_invalidation
+   
+   @cache_with_invalidation(ttl=3600, key_prefix='myfunction')
+   def my_expensive_function(arg1, arg2):
+       # Expensive computation
+       return result
+
+Performance Tips
+----------------
+
+1. **Use TTL wisely**: Set appropriate expiration times
+2. **Pattern invalidation**: Use prefixes for related keys
+3. **Serialization**: Use pickle for complex objects, JSON for simple ones
+4. **Connection pooling**: Redis/Memcached handle this automatically
+5. **Monitoring**: Check cache hit rates regularly
+
+Troubleshooting
+---------------
+
+Cache Not Working
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   # Check cache is enabled
+   from ddf import CACHE_CONFIG
+   print(f"Cache enabled: {CACHE_CONFIG.enabled}")
+   print(f"Cache backend: {CACHE_CONFIG.backend}")
+
+Connection Errors
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   # Test cache connectivity
+   from ddf import CACHE
+   
+   try:
+       CACHE.set('test', 'value')
+       value = CACHE.get('test')
+       print(f"Cache working: {value == 'value'}")
+   except Exception as e:
+       print(f"Cache error: {e}")
+
+For more information, see :doc:`../caching`.
