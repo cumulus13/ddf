@@ -140,7 +140,7 @@ ddf -f 8080
 ### Basic Syntax
 
 ```bash
-python ddf.py [service_name] [options]
+ddf [service_name] [options]
 ```
 
 ### 🖥️ Server Mode
@@ -207,52 +207,52 @@ ddf myservice -rm
 
 ### List all services
 ```bash
-python ddf.py -L
+ddf -L
 ```
 
 ### Filter services by pattern
 ```bash
-python ddf.py -L -F web* app
+ddf -L -F web* app
 ```
 
 ### Show service details
 ```bash
-python ddf.py webapp -d
+ddf webapp -d
 ```
 
 ### Find duplicate ports
 ```bash
-python ddf.py
+ddf
 ```
 
 ### Find services using port 8080
 ```bash
-python ddf.py -f 8080
+ddf -f 8080
 ```
 
 ### Check if port 3000 is duplicated
 ```bash
-python ddf.py -p 3000
+ddf -p 3000
 ```
 
 ### List ports for a service
 ```bash
-python ddf.py webapp -l
+ddf webapp -l
 ```
 
 ### Show volumes for services with "web" in name
 ```bash
-python ddf.py web -vol
+ddf web -vol
 ```
 
 ### Show hostnames
 ```bash
-python ddf.py webapp -hn
+ddf webapp -hn
 ```
 
 ### Edit a service configuration
 ```bash
-python ddf.py webapp -E
+ddf webapp -E
 ```
 
 ### Advanced Editing
@@ -275,67 +275,67 @@ ddf myservice -ed
 
 ### Read Dockerfile for a service
 ```bash
-python ddf.py webapp -r
+ddf webapp -r
 ```
 
 ### Edit Dockerfile
 ```bash
-python ddf.py webapp -e
+ddf webapp -e
 ```
 
 ### Set Dockerfile path
 ```bash
-python ddf.py webapp -sd ./custom/Dockerfile
+ddf webapp -sd ./custom/Dockerfile
 ```
 
 ### Edit entrypoint script
 ```bash
-python ddf.py webapp -ed
+ddf webapp -ed
 ```
 
 ### Read file from Dockerfile COPY
 ```bash
-python ddf.py webapp -rf entrypoint.sh
+ddf webapp -rf entrypoint.sh
 ```
 
 ### Edit file from Dockerfile COPY
 ```bash
-python ddf.py webapp -ef config.conf
+ddf webapp -ef config.conf
 ```
 
 ### Create a new service
 ```bash
-python ddf.py new-service -n
+ddf new-service -n
 ```
 
 ### Duplicate a service
 ```bash
-python ddf.py webapp -dd webapp-staging
+ddf webapp -dd webapp-staging
 ```
 
 ### Rename a service
 ```bash
-python ddf.py webapp -rn webapp-prod
+ddf webapp -rn webapp-prod
 ```
 
 ### Copy service to clipboard
 ```bash
-python ddf.py webapp -cs
+ddf webapp -cs
 ```
 
 ### Copy Dockerfile to clipboard
 ```bash
-python ddf.py webapp -cd
+ddf webapp -cd
 ```
 
 ### Remove a service
 ```bash
-python ddf.py webapp -rm
+ddf webapp -rm
 ```
 
 ### Show version
 ```bash
-python ddf.py -v
+ddf -v
 ```
 
 ## Advanced Features
