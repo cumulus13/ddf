@@ -79,7 +79,8 @@ html_theme_options = {
     'sticky_navigation': True,
     'includehidden': True,
     'titles_only': False,
-    'display_version': True,
+    'style_external_links': True,
+    # 'display_version': True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -184,3 +185,9 @@ napoleon_use_rtype = True
 napoleon_preprocess_types = False
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
+
+# -- MyST Parser settings ---------------------------------------------------
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+]

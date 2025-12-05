@@ -1,0 +1,1339 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caching System &mdash; DDF 0.37.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=71b83207"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Backup &amp; Recovery" href="backup.html" />
+    <link rel="prev" title="Server Mode" href="server_mode.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            DDF
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#optional-dependencies">Optional Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#all-features">All Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#cache-backends">Cache Backends</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#server-mode">Server Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#file-monitoring">File Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#platform-specific-notes">Platform-Specific Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#windows">Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#linux">Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#macos">macOS</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#uninstallation">Uninstallation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#basic-workflow">Basic Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#common-tasks">Common Tasks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#finding-duplicate-ports">Finding Duplicate Ports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#editing-service-configuration">Editing Service Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#creating-new-services">Creating New Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#duplicating-services">Duplicating Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#managing-dockerfiles">Managing Dockerfiles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#working-with-entrypoints">Working with Entrypoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#port-management">Port Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#editor-selection">Editor Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#configuration-file-location">Configuration File Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#configuration-sections">Configuration Sections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#docker-compose-settings">Docker Compose Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#editor-settings">Editor Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#cache-settings">Cache Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#backup-settings">Backup Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#server-mode-settings">Server Mode Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#docker-settings">Docker Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#configuration-validation">Configuration Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#configuration-not-found">Configuration Not Found</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#cache-connection-issues">Cache Connection Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="configuration.html#editor-not-found">Editor Not Found</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#command-line-interface">Command Line Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#basic-syntax">Basic Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#global-options">Global Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#service-information">Service Information</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#list-services">List Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#show-service-details">Show Service Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#show-service-ports">Show Service Ports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#show-service-volumes">Show Service Volumes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#show-service-devices">Show Service Devices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#show-service-hostname">Show Service Hostname</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#port-management">Port Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#find-duplicate-ports">Find Duplicate Ports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#find-port-usage">Find Port Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#check-port-duplication">Check Port Duplication</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#service-editing">Service Editing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#edit-service-configuration">Edit Service Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#edit-dockerfile">Edit Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#edit-entrypoint-script">Edit Entrypoint Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#edit-specific-file">Edit Specific File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#set-dockerfile-path">Set Dockerfile Path</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#service-management">Service Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#create-new-service">Create New Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#duplicate-service">Duplicate Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#rename-service">Rename Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#remove-service">Remove Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#copy-service-to-clipboard">Copy Service to Clipboard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#copy-dockerfile-to-clipboard">Copy Dockerfile to Clipboard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#reading-files">Reading Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#read-dockerfile">Read Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#read-entrypoint">Read Entrypoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#read-specific-file">Read Specific File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#pattern-matching">Pattern Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#detached-mode">Detached Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#filtering">Filtering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#theme-customization">Theme Customization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#batch-operations">Batch Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#process-multiple-services">Process Multiple Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#export-all-services">Export All Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#backup-all-dockerfiles">Backup All Dockerfiles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#exit-codes">Exit Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#typical-workflow">Typical Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#port-conflict-resolution">Port Conflict Resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage.html#service-migration">Service Migration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="server_mode.html">Server Mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#benefits">Benefits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#client-server-model">Client-Server Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#command-routing">Command Routing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#starting-server">Starting Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#manual-start">Manual Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#with-tray-icon">With Tray Icon</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#enable-auto-forwarding">Enable Auto-forwarding</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#systemd-service-linux">Systemd Service (Linux)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#create-service-file">Create Service File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#enable-and-start">Enable and Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#user-service-linux">User Service (Linux)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#windows-service">Windows Service</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#using-nssm">Using NSSM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#using-task-scheduler">Using Task Scheduler</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#macos-launchagent">macOS LaunchAgent</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#create-launch-agent">Create Launch Agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#load-and-start">Load and Start</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#docker-container">Docker Container</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#dockerfile">Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#build-and-run">Build and Run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#docker-compose">Docker Compose</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#health-monitoring">Health Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#check-server-status">Check Server Status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#manual-check">Manual Check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#python-api">Python API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#server-won-t-start">Server Won’t Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#commands-not-forwarded">Commands Not Forwarded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#notifications-not-working">Notifications Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server_mode.html#performance-issues">Performance Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server_mode.html#security-considerations">Security Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Caching System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cache-keys">Cache Keys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cache-invalidation">Cache Invalidation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-invalidation">Automatic Invalidation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual-invalidation">Manual Invalidation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cache-backends">Cache Backends</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pickle-backend">Pickle Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#redis-backend">Redis Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#redis-with-pickle-serialization">Redis with Pickle Serialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memcached-backend">Memcached Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memcached-with-pickle">Memcached with Pickle</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#environment-variables">Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ini-file">INI File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ttl-settings">TTL Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-operations">Basic Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#complex-data">Complex Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pattern-operations">Pattern Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-decorator">Using Decorator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#benchmark-results">Benchmark Results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#monitoring">Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#check-cache-status">Check Cache Status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#redis-monitoring">Redis Monitoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memcached-monitoring">Memcached Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cache-not-working">Cache Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-errors">Connection Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ttl-not-working">TTL Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-issues">Memory Issues</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backup.html">Backup &amp; Recovery</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#backup-operations">Backup Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#when-backups-are-created">When Backups Are Created</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-file-format">Backup File Format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-directory">Backup Directory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#using-backups">Using Backups</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#listing-backups">Listing Backups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#manual-backup">Manual Backup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#restoring-backups">Restoring Backups</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#enhanced-backup-manager">Enhanced Backup Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#checking-if-backup-should-be-created">Checking if Backup Should Be Created</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#batch-operations">Batch Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#regular-cleanup">Regular Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-storage">Backup Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#version-control-integration">Version Control Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#recovery-scenarios">Recovery Scenarios</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#accidental-deletion">Accidental Deletion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#bad-edit">Bad Edit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#system-crash">System Crash</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#compare-versions">Compare Versions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-not-created">Backup Not Created</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-directory-full">Backup Directory Full</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#cannot-restore-backup">Cannot Restore Backup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#ddf-class">DDF Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.DDF"><code class="docutils literal notranslate"><span class="pre">DDF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.__init__"><code class="docutils literal notranslate"><span class="pre">DDF.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.THEME"><code class="docutils literal notranslate"><span class="pre">DDF.THEME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.open_file"><code class="docutils literal notranslate"><span class="pre">DDF.open_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.find_service"><code class="docutils literal notranslate"><span class="pre">DDF.find_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.show_service_detail"><code class="docutils literal notranslate"><span class="pre">DDF.show_service_detail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.find_duplicate_port"><code class="docutils literal notranslate"><span class="pre">DDF.find_duplicate_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.find_port"><code class="docutils literal notranslate"><span class="pre">DDF.find_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.check_duplicate_port"><code class="docutils literal notranslate"><span class="pre">DDF.check_duplicate_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.list_service_devices"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_devices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.list_service_volumes"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_volumes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.list_volumes"><code class="docutils literal notranslate"><span class="pre">DDF.list_volumes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.list_hostnames"><code class="docutils literal notranslate"><span class="pre">DDF.list_hostnames()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.list_service_ports"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_ports()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.get_list_service_names"><code class="docutils literal notranslate"><span class="pre">DDF.get_list_service_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.list_service_names"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.get_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.get_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.read_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.read_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.read_entrypoint1"><code class="docutils literal notranslate"><span class="pre">DDF.read_entrypoint1()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.read_entrypoint2"><code class="docutils literal notranslate"><span class="pre">DDF.read_entrypoint2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.read_entrypoint"><code class="docutils literal notranslate"><span class="pre">DDF.read_entrypoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.edit_entrypoint"><code class="docutils literal notranslate"><span class="pre">DDF.edit_entrypoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.edit_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.edit_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.edit_service"><code class="docutils literal notranslate"><span class="pre">DDF.edit_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.edit_file"><code class="docutils literal notranslate"><span class="pre">DDF.edit_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.read_file"><code class="docutils literal notranslate"><span class="pre">DDF.read_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.set_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.set_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.new_service"><code class="docutils literal notranslate"><span class="pre">DDF.new_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.copy_service"><code class="docutils literal notranslate"><span class="pre">DDF.copy_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.rename_service"><code class="docutils literal notranslate"><span class="pre">DDF.rename_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.copy_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.copy_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.copy_dockerfile_config"><code class="docutils literal notranslate"><span class="pre">DDF.copy_dockerfile_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.duplicate_server"><code class="docutils literal notranslate"><span class="pre">DDF.duplicate_server()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.remove_service"><code class="docutils literal notranslate"><span class="pre">DDF.remove_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.get_version"><code class="docutils literal notranslate"><span class="pre">DDF.get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.show_debug"><code class="docutils literal notranslate"><span class="pre">DDF.show_debug()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.get_content"><code class="docutils literal notranslate"><span class="pre">DDF.get_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.DDF.usage"><code class="docutils literal notranslate"><span class="pre">DDF.usage()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#enhancedddf-class">EnhancedDDF Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.EnhancedDDF"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.EnhancedDDF.edit_service_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.edit_service_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.EnhancedDDF.edit_dockerfile_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.edit_dockerfile_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.EnhancedDDF.edit_entrypoint_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.edit_entrypoint_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.EnhancedDDF.remove_service_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.remove_service_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.EnhancedDDF.usage_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.usage_enhanced()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#usage-class">Usage Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.Usage"><code class="docutils literal notranslate"><span class="pre">Usage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/core.html#ddf.Usage.usage"><code class="docutils literal notranslate"><span class="pre">Usage.usage()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#utility-functions">Utility Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#decorators">Decorators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.cache_with_invalidation"><code class="docutils literal notranslate"><span class="pre">cache_with_invalidation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#constants">Constants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.CONFIGFILE"><code class="docutils literal notranslate"><span class="pre">ddf.CONFIGFILE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.CONFIG"><code class="docutils literal notranslate"><span class="pre">ddf.CONFIG</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.CACHE"><code class="docutils literal notranslate"><span class="pre">ddf.CACHE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/core.html#ddf.CACHE_CONFIG"><code class="docutils literal notranslate"><span class="pre">ddf.CACHE_CONFIG</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/cache.html">Cache API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#cachemanager-class">CacheManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#ddf.CacheManager"><code class="docutils literal notranslate"><span class="pre">CacheManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.__new__"><code class="docutils literal notranslate"><span class="pre">CacheManager.__new__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager._get_client"><code class="docutils literal notranslate"><span class="pre">CacheManager._get_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager._serialize"><code class="docutils literal notranslate"><span class="pre">CacheManager._serialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager._deserialize"><code class="docutils literal notranslate"><span class="pre">CacheManager._deserialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager._get_pickle_path"><code class="docutils literal notranslate"><span class="pre">CacheManager._get_pickle_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager._register_cache_key"><code class="docutils literal notranslate"><span class="pre">CacheManager._register_cache_key()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.__init__"><code class="docutils literal notranslate"><span class="pre">CacheManager.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.cleanup"><code class="docutils literal notranslate"><span class="pre">CacheManager.cleanup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.get"><code class="docutils literal notranslate"><span class="pre">CacheManager.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.set"><code class="docutils literal notranslate"><span class="pre">CacheManager.set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.delete"><code class="docutils literal notranslate"><span class="pre">CacheManager.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.invalidate_pattern"><code class="docutils literal notranslate"><span class="pre">CacheManager.invalidate_pattern()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheManager.flush_all"><code class="docutils literal notranslate"><span class="pre">CacheManager.flush_all()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#cacheconfig-class">CacheConfig Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#ddf.CacheConfig"><code class="docutils literal notranslate"><span class="pre">CacheConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.backend"><code class="docutils literal notranslate"><span class="pre">CacheConfig.backend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.ttl"><code class="docutils literal notranslate"><span class="pre">CacheConfig.ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.enabled"><code class="docutils literal notranslate"><span class="pre">CacheConfig.enabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.memcached_servers"><code class="docutils literal notranslate"><span class="pre">CacheConfig.memcached_servers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.redis_host"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_host</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.redis_port"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_port</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.redis_password"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_password</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.redis_db"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_db</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.pickle_dir"><code class="docutils literal notranslate"><span class="pre">CacheConfig.pickle_dir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheConfig.__init__"><code class="docutils literal notranslate"><span class="pre">CacheConfig.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#cachebackend-enum">CacheBackend Enum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#ddf.CacheBackend"><code class="docutils literal notranslate"><span class="pre">CacheBackend</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheBackend.NONE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.NONE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheBackend.PICKLE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.PICKLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheBackend.MEMCACHED"><code class="docutils literal notranslate"><span class="pre">CacheBackend.MEMCACHED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheBackend.MEMCACHED_PICKLE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.MEMCACHED_PICKLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheBackend.REDIS"><code class="docutils literal notranslate"><span class="pre">CacheBackend.REDIS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/cache.html#ddf.CacheBackend.REDIS_PICKLE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.REDIS_PICKLE</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#cache-backend-comparison">Cache Backend Comparison</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#pickle-backend">Pickle Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#redis-backend">Redis Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#memcached-backend">Memcached Backend</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#configuration-examples">Configuration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#id1">Pickle Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#id2">Redis Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#id3">Memcached Backend</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#basic-caching">Basic Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#pattern-invalidation">Pattern Invalidation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#flush-all">Flush All</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#decorator-usage">Decorator Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#performance-tips">Performance Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/cache.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#cache-not-working">Cache Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/cache.html#connection-errors">Connection Errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/server.html">Server API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#ddfserver-class">DDFServer Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#ddf.DDFServer"><code class="docutils literal notranslate"><span class="pre">DDFServer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.DDFServer.__init__"><code class="docutils literal notranslate"><span class="pre">DDFServer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.DDFServer.health_check"><code class="docutils literal notranslate"><span class="pre">DDFServer.health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.DDFServer.handle_client"><code class="docutils literal notranslate"><span class="pre">DDFServer.handle_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.DDFServer.run_server"><code class="docutils literal notranslate"><span class="pre">DDFServer.run_server()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.DDFServer.setup_tray"><code class="docutils literal notranslate"><span class="pre">DDFServer.setup_tray()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.DDFServer.quit_app"><code class="docutils literal notranslate"><span class="pre">DDFServer.quit_app()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#server-functions">Server Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#lock-management">Lock Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.acquire_lock"><code class="docutils literal notranslate"><span class="pre">acquire_lock()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.release_lock"><code class="docutils literal notranslate"><span class="pre">release_lock()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.is_server_running"><code class="docutils literal notranslate"><span class="pre">is_server_running()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#communication">Communication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.send_to_server"><code class="docutils literal notranslate"><span class="pre">send_to_server()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.execute_command_in_server"><code class="docutils literal notranslate"><span class="pre">execute_command_in_server()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#notification">Notification</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.notify_user"><code class="docutils literal notranslate"><span class="pre">notify_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#ddf.create_emoji_icon"><code class="docutils literal notranslate"><span class="pre">create_emoji_icon()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#server-configuration">Server Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#configuration-options">Configuration Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#environment-variables">Environment Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#SERVER_HOST"><code class="docutils literal notranslate"><span class="pre">SERVER_HOST</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#SERVER_PORT"><code class="docutils literal notranslate"><span class="pre">SERVER_PORT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#SERVER_ACTIVE"><code class="docutils literal notranslate"><span class="pre">SERVER_ACTIVE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/server.html#LOCK_FILE"><code class="docutils literal notranslate"><span class="pre">LOCK_FILE</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#starting-server">Starting Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#checking-server-status">Checking Server Status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#sending-commands">Sending Commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#server-health-check">Server Health Check</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#server-communication-protocol">Server Communication Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#request-format">Request Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#response-format">Response Format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#server-flow">Server Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#tray-icon-integration">Tray Icon Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#auto-forwarding">Auto-forwarding</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#systemd-integration">Systemd Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#linux-service">Linux Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#windows-service">Windows Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#docker-container">Docker Container</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#security-considerations">Security Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/server.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#server-won-t-start">Server Won’t Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#commands-not-forwarded">Commands Not Forwarded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/server.html#notifications-not-working">Notifications Not Working</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/backup.html">Backup API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/backup.html#backupmanager-class">BackupManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#ddf.BackupManager"><code class="docutils literal notranslate"><span class="pre">BackupManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.BackupManager.get_backup_dir"><code class="docutils literal notranslate"><span class="pre">BackupManager.get_backup_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.BackupManager.create_backup"><code class="docutils literal notranslate"><span class="pre">BackupManager.create_backup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.BackupManager.restore_from_backup"><code class="docutils literal notranslate"><span class="pre">BackupManager.restore_from_backup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.BackupManager.list_backups"><code class="docutils literal notranslate"><span class="pre">BackupManager.list_backups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.BackupManager.prompt_restore_backup"><code class="docutils literal notranslate"><span class="pre">BackupManager.prompt_restore_backup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/backup.html#enhancedbackupmanager-class">EnhancedBackupManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#ddf.EnhancedBackupManager"><code class="docutils literal notranslate"><span class="pre">EnhancedBackupManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.EnhancedBackupManager.create_backup_with_context"><code class="docutils literal notranslate"><span class="pre">EnhancedBackupManager.create_backup_with_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/backup.html#ddf.EnhancedBackupManager.should_create_backup"><code class="docutils literal notranslate"><span class="pre">EnhancedBackupManager.should_create_backup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/backup.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#basic-backup">Basic Backup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#backup-with-context">Backup with Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#list-backups">List Backups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#restore-backup">Restore Backup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#interactive-restore">Interactive Restore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#check-if-backup-needed">Check if Backup Needed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#backup-directory">Backup Directory</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/backup.html#integration-examples">Integration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#with-error-handling">With Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#automated-cleanup">Automated Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#backup-verification">Backup Verification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#backup-history">Backup History</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/backup.html#constants">Constants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#id1">Backup Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#backup-file-pattern">Backup File Pattern</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/backup.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#common-exceptions">Common Exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/backup.html#handling-failed-backups">Handling Failed Backups</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/editor.html">Editor API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#editormanager-class">EditorManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#ddf.EditorManager"><code class="docutils literal notranslate"><span class="pre">EditorManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/editor.html#ddf.EditorManager.BLOCKING_EDITORS"><code class="docutils literal notranslate"><span class="pre">EditorManager.BLOCKING_EDITORS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/editor.html#ddf.EditorManager.NON_BLOCKING_EDITORS"><code class="docutils literal notranslate"><span class="pre">EditorManager.NON_BLOCKING_EDITORS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/editor.html#ddf.EditorManager.SPECIAL_HANDLING"><code class="docutils literal notranslate"><span class="pre">EditorManager.SPECIAL_HANDLING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/editor.html#ddf.EditorManager.edit_file_with_monitoring"><code class="docutils literal notranslate"><span class="pre">EditorManager.edit_file_with_monitoring()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/editor.html#ddf.EditorManager.get_editor_type"><code class="docutils literal notranslate"><span class="pre">EditorManager.get_editor_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/editor.html#ddf.EditorManager.cleanup_temp_files"><code class="docutils literal notranslate"><span class="pre">EditorManager.cleanup_temp_files()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#editor-types">Editor Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#blocking-editors">Blocking Editors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#non-blocking-editors">Non-Blocking Editors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#special-handling">Special Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#basic-file-editing">Basic File Editing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#with-detached-mode">With Detached Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#custom-callback">Custom Callback</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#multiple-files">Multiple Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#file-hash-utilities">File Hash Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#get-file-hash">Get File Hash</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#detect-changes">Detect Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#cleanup-operations">Cleanup Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#cleanup-temp-files">Cleanup Temp Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#scheduled-cleanup">Scheduled Cleanup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#detached-terminal">Detached Terminal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#sublime-text-wait-mode">Sublime Text Wait Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#file-monitoring">File Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#editor-priority">Editor Priority</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#platform-specific-config">Platform-Specific Config</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#editor-not-found">Editor Not Found</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#timeout-handling">Timeout Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#permission-errors">Permission Errors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/editor.html#integration-examples">Integration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#with-ddf-edit-operations">With DDF Edit Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/editor.html#custom-editor-wrapper">Custom Editor Wrapper</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to DDF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#ways-to-contribute">Ways to Contribute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#development-workflow">Development Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#code-standards">Code Standards</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#testing">Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#commit-messages">Commit Messages</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#pull-request-process">Pull Request Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#pull-request-template">Pull Request Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#reporting-bugs">Reporting Bugs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#bug-report-template">Bug Report Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#feature-requests">Feature Requests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#feature-request-template">Feature Request Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#development-guidelines">Development Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#error-handling">Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#performance">Performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#security">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#adding-new-features">Adding New Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#cache-backend-example">Cache Backend Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#editor-support-example">Editor Support Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#community">Community</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#license">License</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="license.html#mit-license">MIT License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="license.html#third-party-licenses">Third-Party Licenses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="license.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="license.html#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="license.html#development-dependencies">Development Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="license.html#about-mit-license">About MIT License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="license.html#for-commercial-use">For Commercial Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="license.html#contributions">Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="license.html#attribution">Attribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="license.html#questions">Questions</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">DDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Caching System</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/caching.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="caching-system">
+<h1>Caching System<a class="headerlink" href="#caching-system" title="Link to this heading"></a></h1>
+<p>DDF includes a sophisticated caching system to improve performance by storing
+parsed YAML files, service listings, and other frequently accessed data.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The caching system supports multiple backends:</p>
+<ul class="simple">
+<li><p><strong>Pickle</strong> - File-based cache (default, no dependencies)</p></li>
+<li><p><strong>Redis</strong> - In-memory cache with persistence</p></li>
+<li><p><strong>Memcached</strong> - Pure in-memory cache</p></li>
+</ul>
+</section>
+<section id="cache-keys">
+<h2>Cache Keys<a class="headerlink" href="#cache-keys" title="Link to this heading"></a></h2>
+<p>DDF uses hierarchical cache keys:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>yaml:hash              - SHA256 hash of docker-compose.yml
+open_file              - Parsed YAML content
+service_names:&lt;hash&gt;   - List of service names
+dockerfile:&lt;service&gt;   - Dockerfile path for service
+</pre></div>
+</div>
+</section>
+<section id="cache-invalidation">
+<h2>Cache Invalidation<a class="headerlink" href="#cache-invalidation" title="Link to this heading"></a></h2>
+<section id="automatic-invalidation">
+<h3>Automatic Invalidation<a class="headerlink" href="#automatic-invalidation" title="Link to this heading"></a></h3>
+<p>Cache is automatically invalidated when:</p>
+<ol class="arabic simple">
+<li><p>docker-compose.yml file changes (detected by SHA256 hash)</p></li>
+<li><p>Service is edited</p></li>
+<li><p>Service is removed or renamed</p></li>
+<li><p>Manual flush is triggered</p></li>
+</ol>
+</section>
+<section id="manual-invalidation">
+<h3>Manual Invalidation<a class="headerlink" href="#manual-invalidation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Invalidate specific key</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;open_file&#39;</span><span class="p">)</span>
+
+<span class="c1"># Invalidate pattern</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">invalidate_pattern</span><span class="p">(</span><span class="s1">&#39;service:&#39;</span><span class="p">)</span>
+
+<span class="c1"># Flush all cache</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">flush_all</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="cache-backends">
+<h2>Cache Backends<a class="headerlink" href="#cache-backends" title="Link to this heading"></a></h2>
+<section id="pickle-backend">
+<h3>Pickle Backend<a class="headerlink" href="#pickle-backend" title="Link to this heading"></a></h3>
+<p><strong>Configuration:</strong></p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">pickle</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="na">pickle_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/tmp/ddf_cache</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+</pre></div>
+</div>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p>No external dependencies</p></li>
+<li><p>Stores data as Python pickle files</p></li>
+<li><p>TTL enforced by file modification time</p></li>
+<li><p>Suitable for single-user scenarios</p></li>
+<li><p>Not suitable for multi-process use</p></li>
+</ul>
+<p><strong>When to Use:</strong></p>
+<ul class="simple">
+<li><p>Development environments</p></li>
+<li><p>Single-user workstations</p></li>
+<li><p>No Redis/Memcached available</p></li>
+<li><p>Offline operation required</p></li>
+</ul>
+<p><strong>Performance:</strong></p>
+<ul class="simple">
+<li><p>Read: ~1ms per key</p></li>
+<li><p>Write: ~2ms per key</p></li>
+<li><p>Limited by disk I/O</p></li>
+</ul>
+</section>
+<section id="redis-backend">
+<h3>Redis Backend<a class="headerlink" href="#redis-backend" title="Link to this heading"></a></h3>
+<p><strong>Configuration:</strong></p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">redis</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+<span class="na">redis_host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost</span>
+<span class="na">redis_port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">6379</span>
+<span class="na">redis_password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">your_password</span>
+<span class="na">redis_db</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0</span>
+</pre></div>
+</div>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p>Fast in-memory storage</p></li>
+<li><p>Persistent data (configurable)</p></li>
+<li><p>Automatic TTL expiration</p></li>
+<li><p>Pattern-based operations</p></li>
+<li><p>Multi-process safe</p></li>
+</ul>
+<p><strong>When to Use:</strong></p>
+<ul class="simple">
+<li><p>Production environments</p></li>
+<li><p>Multi-user scenarios</p></li>
+<li><p>Need persistence across restarts</p></li>
+<li><p>Need advanced features (patterns, TTL)</p></li>
+</ul>
+<p><strong>Performance:</strong></p>
+<ul class="simple">
+<li><p>Read: ~0.1ms per key</p></li>
+<li><p>Write: ~0.2ms per key</p></li>
+<li><p>Network overhead minimal on localhost</p></li>
+</ul>
+<p><strong>Installation:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Redis</span>
+<span class="c1"># Ubuntu/Debian</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>redis-server
+
+<span class="c1"># macOS</span>
+brew<span class="w"> </span>install<span class="w"> </span>redis
+
+<span class="c1"># Start Redis</span>
+redis-server
+
+<span class="c1"># Install Python client</span>
+pip<span class="w"> </span>install<span class="w"> </span>redis
+</pre></div>
+</div>
+</section>
+<section id="redis-with-pickle-serialization">
+<h3>Redis with Pickle Serialization<a class="headerlink" href="#redis-with-pickle-serialization" title="Link to this heading"></a></h3>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">redis_pickle</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="c1"># ... same Redis settings ...</span>
+</pre></div>
+</div>
+<p>Uses pickle serialization instead of JSON. Better for complex Python objects.</p>
+</section>
+<section id="memcached-backend">
+<h3>Memcached Backend<a class="headerlink" href="#memcached-backend" title="Link to this heading"></a></h3>
+<p><strong>Configuration:</strong></p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">memcached</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+<span class="na">memcached_servers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost:11211, server2:11211</span>
+</pre></div>
+</div>
+<p><strong>Characteristics:</strong></p>
+<ul class="simple">
+<li><p>Very fast pure in-memory storage</p></li>
+<li><p>No persistence (data lost on restart)</p></li>
+<li><p>Simple protocol</p></li>
+<li><p>Multi-process safe</p></li>
+<li><p>Distributed caching support</p></li>
+</ul>
+<p><strong>When to Use:</strong></p>
+<ul class="simple">
+<li><p>Need highest performance</p></li>
+<li><p>Don’t need persistence</p></li>
+<li><p>Distributed systems</p></li>
+<li><p>Simple caching needs</p></li>
+</ul>
+<p><strong>Performance:</strong></p>
+<ul class="simple">
+<li><p>Read: ~0.05ms per key</p></li>
+<li><p>Write: ~0.1ms per key</p></li>
+<li><p>Lowest overhead</p></li>
+</ul>
+<p><strong>Installation:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Memcached</span>
+<span class="c1"># Ubuntu/Debian</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>memcached
+
+<span class="c1"># macOS</span>
+brew<span class="w"> </span>install<span class="w"> </span>memcached
+
+<span class="c1"># Start Memcached</span>
+memcached<span class="w"> </span>-d
+
+<span class="c1"># Install Python client</span>
+pip<span class="w"> </span>install<span class="w"> </span>pymemcache
+</pre></div>
+</div>
+</section>
+<section id="memcached-with-pickle">
+<h3>Memcached with Pickle<a class="headerlink" href="#memcached-with-pickle" title="Link to this heading"></a></h3>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">memcached_pickle</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="c1"># ... same Memcached settings ...</span>
+</pre></div>
+</div>
+<p>Uses pickle serialization for complex objects.</p>
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<section id="environment-variables">
+<h3>Environment Variables<a class="headerlink" href="#environment-variables" title="Link to this heading"></a></h3>
+<p>Sensitive configuration can use environment variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">REDIS_HOST</span><span class="o">=</span><span class="m">192</span>.168.1.100
+<span class="nb">export</span><span class="w"> </span><span class="nv">REDIS_PORT</span><span class="o">=</span><span class="m">6379</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">REDIS_PASSWORD</span><span class="o">=</span>secret_password
+<span class="nb">export</span><span class="w"> </span><span class="nv">REDIS_DB</span><span class="o">=</span><span class="m">0</span>
+</pre></div>
+</div>
+<p>These override config file settings.</p>
+</section>
+<section id="ini-file">
+<h3>INI File<a class="headerlink" href="#ini-file" title="Link to this heading"></a></h3>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="c1"># Backend selection</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">redis</span>
+
+<span class="c1"># Enable/disable caching</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+
+<span class="c1"># Time to live (seconds)</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+
+<span class="c1"># Redis settings</span>
+<span class="na">redis_host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost</span>
+<span class="na">redis_port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">6379</span>
+<span class="na">redis_password</span><span class="w"> </span><span class="o">=</span>
+<span class="na">redis_db</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0</span>
+
+<span class="c1"># Memcached settings</span>
+<span class="na">memcached_servers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost:11211</span>
+
+<span class="c1"># Pickle settings</span>
+<span class="na">pickle_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/tmp/ddf_cache</span>
+</pre></div>
+</div>
+</section>
+<section id="ttl-settings">
+<h3>TTL Settings<a class="headerlink" href="#ttl-settings" title="Link to this heading"></a></h3>
+<p>Time-to-live controls how long cached data is valid:</p>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="c1"># 1 hour</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+
+<span class="c1"># 1 day</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">86400</span>
+
+<span class="c1"># No expiration</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span>
+</pre></div>
+</div>
+<p><strong>Recommendations:</strong></p>
+<ul class="simple">
+<li><p>Development: 600 (10 minutes)</p></li>
+<li><p>Production: 3600 (1 hour)</p></li>
+<li><p>Stable configs: 86400 (1 day)</p></li>
+<li><p>Frequently changing: 300 (5 minutes)</p></li>
+</ul>
+</section>
+</section>
+<section id="usage-examples">
+<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h2>
+<section id="basic-operations">
+<h3>Basic Operations<a class="headerlink" href="#basic-operations" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Set value</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;my_key&#39;</span><span class="p">,</span> <span class="s1">&#39;my_value&#39;</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span>
+
+<span class="c1"># Get value</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;my_key&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Not in cache&quot;</span><span class="p">)</span>
+
+<span class="c1"># Delete value</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;my_key&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="complex-data">
+<h3>Complex Data<a class="headerlink" href="#complex-data" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Cache complex data</span>
+<span class="n">service_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;web&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;ports&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;8080:80&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;volumes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;/data:/app/data&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;service:web&#39;</span><span class="p">,</span> <span class="n">service_data</span><span class="p">)</span>
+
+<span class="c1"># Retrieve</span>
+<span class="n">cached</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;service:web&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pattern-operations">
+<h3>Pattern Operations<a class="headerlink" href="#pattern-operations" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Store related keys</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;service:web:config&#39;</span><span class="p">,</span> <span class="n">config1</span><span class="p">)</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;service:web:ports&#39;</span><span class="p">,</span> <span class="n">ports1</span><span class="p">)</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;service:api:config&#39;</span><span class="p">,</span> <span class="n">config2</span><span class="p">)</span>
+
+<span class="c1"># Invalidate all &#39;web&#39; related keys</span>
+<span class="n">count</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">invalidate_pattern</span><span class="p">(</span><span class="s1">&#39;service:web:&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalidated </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> keys&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-decorator">
+<h3>Using Decorator<a class="headerlink" href="#using-decorator" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">cache_with_invalidation</span>
+
+<span class="nd">@cache_with_invalidation</span><span class="p">(</span><span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="s1">&#39;expensive&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">expensive_operation</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
+    <span class="c1"># Expensive computation</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">perform_calculation</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+<span class="c1"># First call: computed and cached</span>
+<span class="n">result1</span> <span class="o">=</span> <span class="n">expensive_operation</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+
+<span class="c1"># Second call: retrieved from cache</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">expensive_operation</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-optimization">
+<h2>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading"></a></h2>
+<section id="best-practices">
+<h3>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p><strong>Use appropriate TTL</strong>:</p>
+<ul class="simple">
+<li><p>Short for frequently changing data</p></li>
+<li><p>Long for stable configurations</p></li>
+</ul>
+</li>
+<li><p><strong>Batch operations</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Instead of:</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+    <span class="n">CACHE</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+<span class="c1"># Use pattern:</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">invalidate_pattern</span><span class="p">(</span><span class="s1">&#39;prefix:&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Monitor cache hit rate</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hits</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">misses</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="n">value</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+    <span class="n">hits</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">misses</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">hit_rate</span> <span class="o">=</span> <span class="n">hits</span> <span class="o">/</span> <span class="p">(</span><span class="n">hits</span> <span class="o">+</span> <span class="n">misses</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Use correct serialization</strong>:</p>
+<ul class="simple">
+<li><p>JSON for simple data (faster)</p></li>
+<li><p>Pickle for complex objects (more compatible)</p></li>
+</ul>
+</li>
+<li><p><strong>Connection pooling</strong> (handled automatically):</p>
+<ul class="simple">
+<li><p>Redis and Memcached clients maintain connection pools</p></li>
+<li><p>No manual management needed</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="benchmark-results">
+<h3>Benchmark Results<a class="headerlink" href="#benchmark-results" title="Link to this heading"></a></h3>
+<p>Average operation times (localhost):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Backend</p></th>
+<th class="head"><p>Get</p></th>
+<th class="head"><p>Set</p></th>
+<th class="head"><p>Delete</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pickle</p></td>
+<td><p>1.0ms</p></td>
+<td><p>2.0ms</p></td>
+<td><p>0.5ms</p></td>
+</tr>
+<tr class="row-odd"><td><p>Redis</p></td>
+<td><p>0.1ms</p></td>
+<td><p>0.2ms</p></td>
+<td><p>0.1ms</p></td>
+</tr>
+<tr class="row-even"><td><p>Redis (pickle)</p></td>
+<td><p>0.15ms</p></td>
+<td><p>0.25ms</p></td>
+<td><p>0.1ms</p></td>
+</tr>
+<tr class="row-odd"><td><p>Memcached</p></td>
+<td><p>0.05ms</p></td>
+<td><p>0.1ms</p></td>
+<td><p>0.05ms</p></td>
+</tr>
+<tr class="row-even"><td><p>Memcached (pickle)</p></td>
+<td><p>0.08ms</p></td>
+<td><p>0.12ms</p></td>
+<td><p>0.05ms</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="monitoring">
+<h2>Monitoring<a class="headerlink" href="#monitoring" title="Link to this heading"></a></h2>
+<section id="check-cache-status">
+<h3>Check Cache Status<a class="headerlink" href="#check-cache-status" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span><span class="p">,</span> <span class="n">CACHE_CONFIG</span>
+
+<span class="c1"># Check configuration</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backend: </span><span class="si">{</span><span class="n">CACHE_CONFIG</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enabled: </span><span class="si">{</span><span class="n">CACHE_CONFIG</span><span class="o">.</span><span class="n">enabled</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TTL: </span><span class="si">{</span><span class="n">CACHE_CONFIG</span><span class="o">.</span><span class="n">ttl</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Test cache</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cache working: </span><span class="si">{</span><span class="n">result</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="redis-monitoring">
+<h3>Redis Monitoring<a class="headerlink" href="#redis-monitoring" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Connect to Redis CLI</span>
+redis-cli
+
+<span class="c1"># View all keys</span>
+KEYS<span class="w"> </span>*
+
+<span class="c1"># View DDF keys</span>
+KEYS<span class="w"> </span>ddf:*
+
+<span class="c1"># Get key value</span>
+GET<span class="w"> </span>open_file
+
+<span class="c1"># Monitor operations</span>
+MONITOR
+
+<span class="c1"># View memory usage</span>
+INFO<span class="w"> </span>memory
+</pre></div>
+</div>
+</section>
+<section id="memcached-monitoring">
+<h3>Memcached Monitoring<a class="headerlink" href="#memcached-monitoring" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Connect to Memcached</span>
+telnet<span class="w"> </span>localhost<span class="w"> </span><span class="m">11211</span>
+
+<span class="c1"># View stats</span>
+stats
+
+<span class="c1"># View items</span>
+stats<span class="w"> </span>items
+
+<span class="c1"># View slabs</span>
+stats<span class="w"> </span>slabs
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="cache-not-working">
+<h3>Cache Not Working<a class="headerlink" href="#cache-not-working" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if enabled</span>
+<span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE_CONFIG</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Enabled: </span><span class="si">{</span><span class="n">CACHE_CONFIG</span><span class="o">.</span><span class="n">enabled</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Test set/get</span>
+<span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="s1">&#39;value&#39;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cache not working!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="connection-errors">
+<h3>Connection Errors<a class="headerlink" href="#connection-errors" title="Link to this heading"></a></h3>
+<p><strong>Redis:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check Redis is running</span>
+redis-cli<span class="w"> </span>ping
+<span class="c1"># Should return: PONG</span>
+
+<span class="c1"># Check connection</span>
+redis-cli<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span><span class="w"> </span>-a<span class="w"> </span>password<span class="w"> </span>ping
+</pre></div>
+</div>
+<p><strong>Memcached:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check Memcached is running</span>
+<span class="nb">echo</span><span class="w"> </span>stats<span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>localhost<span class="w"> </span><span class="m">11211</span>
+</pre></div>
+</div>
+<p><strong>Fallback Behavior:</strong></p>
+<p>DDF automatically falls back to pickle cache if Redis/Memcached fails:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Warning: Redis not available (Connection refused), falling back to pickle
+✓ Using pickle cache: /tmp/ddf_cache
+</pre></div>
+</div>
+</section>
+<section id="ttl-not-working">
+<h3>TTL Not Working<a class="headerlink" href="#ttl-not-working" title="Link to this heading"></a></h3>
+<p><strong>Pickle Backend:</strong></p>
+<ul class="simple">
+<li><p>TTL enforced by file modification time</p></li>
+<li><p>Old files are deleted on next access</p></li>
+<li><p>Manual cleanup: <code class="docutils literal notranslate"><span class="pre">rm</span> <span class="pre">/tmp/ddf_cache/*.pkl</span></code></p></li>
+</ul>
+<p><strong>Redis/Memcached:</strong></p>
+<ul class="simple">
+<li><p>TTL handled by server</p></li>
+<li><p>Check server is honoring TTL</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">TTL</span> <span class="pre">key</span></code> command in Redis CLI</p></li>
+</ul>
+</section>
+<section id="memory-issues">
+<h3>Memory Issues<a class="headerlink" href="#memory-issues" title="Link to this heading"></a></h3>
+<p><strong>High Memory Usage:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check cache size</span>
+du<span class="w"> </span>-sh<span class="w"> </span>/tmp/ddf_cache<span class="w">              </span><span class="c1"># Pickle</span>
+redis-cli<span class="w"> </span>INFO<span class="w"> </span>memory<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>used<span class="w">  </span><span class="c1"># Redis</span>
+
+<span class="c1"># Clear cache</span>
+ddf<span class="w"> </span>--flush-cache<span class="w">  </span><span class="c1"># If implemented</span>
+
+<span class="c1"># Or manually</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>/tmp/ddf_cache/*.pkl<span class="w">        </span><span class="c1"># Pickle</span>
+redis-cli<span class="w"> </span>FLUSHDB<span class="w">                  </span><span class="c1"># Redis</span>
+<span class="nb">echo</span><span class="w"> </span>flush_all<span class="w"> </span><span class="p">|</span><span class="w"> </span>nc<span class="w"> </span>localhost<span class="w"> </span><span class="m">11211</span><span class="w">  </span><span class="c1"># Memcached</span>
+</pre></div>
+</div>
+<p>For more information, see <a class="reference internal" href="api/cache.html"><span class="doc">Cache API</span></a>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="server_mode.html" class="btn btn-neutral float-left" title="Server Mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="backup.html" class="btn btn-neutral float-right" title="Backup &amp; Recovery" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Hadi Cahyadi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

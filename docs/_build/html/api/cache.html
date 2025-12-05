@@ -1,0 +1,1351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cache API &mdash; DDF 0.37.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=71b83207"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Server API" href="server.html" />
+    <link rel="prev" title="Core API" href="core.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            DDF
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#optional-dependencies">Optional Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#all-features">All Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#cache-backends">Cache Backends</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#server-mode">Server Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#file-monitoring">File Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#platform-specific-notes">Platform-Specific Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#windows">Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#linux">Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../installation.html#macos">macOS</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#uninstallation">Uninstallation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#basic-workflow">Basic Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#common-tasks">Common Tasks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#finding-duplicate-ports">Finding Duplicate Ports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#editing-service-configuration">Editing Service Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#creating-new-services">Creating New Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#duplicating-services">Duplicating Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#managing-dockerfiles">Managing Dockerfiles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#working-with-entrypoints">Working with Entrypoints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quickstart.html#port-management">Port Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#editor-selection">Editor Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#configuration-file-location">Configuration File Location</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#configuration-sections">Configuration Sections</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#docker-compose-settings">Docker Compose Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#editor-settings">Editor Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#cache-settings">Cache Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#backup-settings">Backup Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#server-mode-settings">Server Mode Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#docker-settings">Docker Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#configuration-validation">Configuration Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../configuration.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#configuration-not-found">Configuration Not Found</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#cache-connection-issues">Cache Connection Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../configuration.html#editor-not-found">Editor Not Found</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#command-line-interface">Command Line Interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#basic-syntax">Basic Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#global-options">Global Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#service-information">Service Information</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#list-services">List Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#show-service-details">Show Service Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#show-service-ports">Show Service Ports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#show-service-volumes">Show Service Volumes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#show-service-devices">Show Service Devices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#show-service-hostname">Show Service Hostname</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#port-management">Port Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#find-duplicate-ports">Find Duplicate Ports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#find-port-usage">Find Port Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#check-port-duplication">Check Port Duplication</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#service-editing">Service Editing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#edit-service-configuration">Edit Service Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#edit-dockerfile">Edit Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#edit-entrypoint-script">Edit Entrypoint Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#edit-specific-file">Edit Specific File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#set-dockerfile-path">Set Dockerfile Path</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#service-management">Service Management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#create-new-service">Create New Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#duplicate-service">Duplicate Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#rename-service">Rename Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#remove-service">Remove Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#copy-service-to-clipboard">Copy Service to Clipboard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#copy-dockerfile-to-clipboard">Copy Dockerfile to Clipboard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#reading-files">Reading Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#read-dockerfile">Read Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#read-entrypoint">Read Entrypoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#read-specific-file">Read Specific File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#pattern-matching">Pattern Matching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#detached-mode">Detached Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#filtering">Filtering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#theme-customization">Theme Customization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#batch-operations">Batch Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#process-multiple-services">Process Multiple Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#export-all-services">Export All Services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#backup-all-dockerfiles">Backup All Dockerfiles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#exit-codes">Exit Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../usage.html#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#typical-workflow">Typical Workflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#port-conflict-resolution">Port Conflict Resolution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../usage.html#service-migration">Service Migration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../server_mode.html">Server Mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#benefits">Benefits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#client-server-model">Client-Server Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#command-routing">Command Routing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#starting-server">Starting Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#manual-start">Manual Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#with-tray-icon">With Tray Icon</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#enable-auto-forwarding">Enable Auto-forwarding</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#systemd-service-linux">Systemd Service (Linux)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#create-service-file">Create Service File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#enable-and-start">Enable and Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#user-service-linux">User Service (Linux)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#windows-service">Windows Service</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#using-nssm">Using NSSM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#using-task-scheduler">Using Task Scheduler</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#macos-launchagent">macOS LaunchAgent</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#create-launch-agent">Create Launch Agent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#load-and-start">Load and Start</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#docker-container">Docker Container</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#dockerfile">Dockerfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#build-and-run">Build and Run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#docker-compose">Docker Compose</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#health-monitoring">Health Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#check-server-status">Check Server Status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#manual-check">Manual Check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#python-api">Python API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#server-won-t-start">Server Won’t Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#commands-not-forwarded">Commands Not Forwarded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#notifications-not-working">Notifications Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../server_mode.html#performance-issues">Performance Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../server_mode.html#security-considerations">Security Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../caching.html">Caching System</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#cache-keys">Cache Keys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#cache-invalidation">Cache Invalidation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#automatic-invalidation">Automatic Invalidation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#manual-invalidation">Manual Invalidation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#cache-backends">Cache Backends</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#pickle-backend">Pickle Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#redis-backend">Redis Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#redis-with-pickle-serialization">Redis with Pickle Serialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#memcached-backend">Memcached Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#memcached-with-pickle">Memcached with Pickle</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#environment-variables">Environment Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#ini-file">INI File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#ttl-settings">TTL Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#basic-operations">Basic Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#complex-data">Complex Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#pattern-operations">Pattern Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#using-decorator">Using Decorator</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#benchmark-results">Benchmark Results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#monitoring">Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#check-cache-status">Check Cache Status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#redis-monitoring">Redis Monitoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#memcached-monitoring">Memcached Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../caching.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#cache-not-working">Cache Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#connection-errors">Connection Errors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#ttl-not-working">TTL Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../caching.html#memory-issues">Memory Issues</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../backup.html">Backup &amp; Recovery</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#backup-operations">Backup Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#when-backups-are-created">When Backups Are Created</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#backup-file-format">Backup File Format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#backup-directory">Backup Directory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#environment-variables">Environment Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#using-backups">Using Backups</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#listing-backups">Listing Backups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#manual-backup">Manual Backup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#restoring-backups">Restoring Backups</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#enhanced-backup-manager">Enhanced Backup Manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#checking-if-backup-should-be-created">Checking if Backup Should Be Created</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#batch-operations">Batch Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#regular-cleanup">Regular Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#backup-storage">Backup Storage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#version-control-integration">Version Control Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#recovery-scenarios">Recovery Scenarios</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#accidental-deletion">Accidental Deletion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#bad-edit">Bad Edit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#system-crash">System Crash</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#compare-versions">Compare Versions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../backup.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#backup-not-created">Backup Not Created</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#backup-directory-full">Backup Directory Full</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../backup.html#cannot-restore-backup">Cannot Restore Backup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#ddf-class">DDF Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.DDF"><code class="docutils literal notranslate"><span class="pre">DDF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.__init__"><code class="docutils literal notranslate"><span class="pre">DDF.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.THEME"><code class="docutils literal notranslate"><span class="pre">DDF.THEME</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.open_file"><code class="docutils literal notranslate"><span class="pre">DDF.open_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.find_service"><code class="docutils literal notranslate"><span class="pre">DDF.find_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.show_service_detail"><code class="docutils literal notranslate"><span class="pre">DDF.show_service_detail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.find_duplicate_port"><code class="docutils literal notranslate"><span class="pre">DDF.find_duplicate_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.find_port"><code class="docutils literal notranslate"><span class="pre">DDF.find_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.check_duplicate_port"><code class="docutils literal notranslate"><span class="pre">DDF.check_duplicate_port()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.list_service_devices"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_devices()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.list_service_volumes"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_volumes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.list_volumes"><code class="docutils literal notranslate"><span class="pre">DDF.list_volumes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.list_hostnames"><code class="docutils literal notranslate"><span class="pre">DDF.list_hostnames()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.list_service_ports"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_ports()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.get_list_service_names"><code class="docutils literal notranslate"><span class="pre">DDF.get_list_service_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.list_service_names"><code class="docutils literal notranslate"><span class="pre">DDF.list_service_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.get_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.get_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.read_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.read_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.read_entrypoint1"><code class="docutils literal notranslate"><span class="pre">DDF.read_entrypoint1()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.read_entrypoint2"><code class="docutils literal notranslate"><span class="pre">DDF.read_entrypoint2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.read_entrypoint"><code class="docutils literal notranslate"><span class="pre">DDF.read_entrypoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.edit_entrypoint"><code class="docutils literal notranslate"><span class="pre">DDF.edit_entrypoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.edit_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.edit_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.edit_service"><code class="docutils literal notranslate"><span class="pre">DDF.edit_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.edit_file"><code class="docutils literal notranslate"><span class="pre">DDF.edit_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.read_file"><code class="docutils literal notranslate"><span class="pre">DDF.read_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.set_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.set_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.new_service"><code class="docutils literal notranslate"><span class="pre">DDF.new_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.copy_service"><code class="docutils literal notranslate"><span class="pre">DDF.copy_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.rename_service"><code class="docutils literal notranslate"><span class="pre">DDF.rename_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.copy_dockerfile"><code class="docutils literal notranslate"><span class="pre">DDF.copy_dockerfile()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.copy_dockerfile_config"><code class="docutils literal notranslate"><span class="pre">DDF.copy_dockerfile_config()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.duplicate_server"><code class="docutils literal notranslate"><span class="pre">DDF.duplicate_server()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.remove_service"><code class="docutils literal notranslate"><span class="pre">DDF.remove_service()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.get_version"><code class="docutils literal notranslate"><span class="pre">DDF.get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.show_debug"><code class="docutils literal notranslate"><span class="pre">DDF.show_debug()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.get_content"><code class="docutils literal notranslate"><span class="pre">DDF.get_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.DDF.usage"><code class="docutils literal notranslate"><span class="pre">DDF.usage()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#enhancedddf-class">EnhancedDDF Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.EnhancedDDF"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.EnhancedDDF.edit_service_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.edit_service_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.EnhancedDDF.edit_dockerfile_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.edit_dockerfile_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.EnhancedDDF.edit_entrypoint_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.edit_entrypoint_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.EnhancedDDF.remove_service_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.remove_service_enhanced()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.EnhancedDDF.usage_enhanced"><code class="docutils literal notranslate"><span class="pre">EnhancedDDF.usage_enhanced()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#usage-class">Usage Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.Usage"><code class="docutils literal notranslate"><span class="pre">Usage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="core.html#ddf.Usage.usage"><code class="docutils literal notranslate"><span class="pre">Usage.usage()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#utility-functions">Utility Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#decorators">Decorators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.cache_with_invalidation"><code class="docutils literal notranslate"><span class="pre">cache_with_invalidation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#constants">Constants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.CONFIGFILE"><code class="docutils literal notranslate"><span class="pre">ddf.CONFIGFILE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.CONFIG"><code class="docutils literal notranslate"><span class="pre">ddf.CONFIG</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.CACHE"><code class="docutils literal notranslate"><span class="pre">ddf.CACHE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#ddf.CACHE_CONFIG"><code class="docutils literal notranslate"><span class="pre">ddf.CACHE_CONFIG</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Cache API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cachemanager-class">CacheManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ddf.CacheManager"><code class="docutils literal notranslate"><span class="pre">CacheManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.__new__"><code class="docutils literal notranslate"><span class="pre">CacheManager.__new__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager._get_client"><code class="docutils literal notranslate"><span class="pre">CacheManager._get_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager._serialize"><code class="docutils literal notranslate"><span class="pre">CacheManager._serialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager._deserialize"><code class="docutils literal notranslate"><span class="pre">CacheManager._deserialize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager._get_pickle_path"><code class="docutils literal notranslate"><span class="pre">CacheManager._get_pickle_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager._register_cache_key"><code class="docutils literal notranslate"><span class="pre">CacheManager._register_cache_key()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.__init__"><code class="docutils literal notranslate"><span class="pre">CacheManager.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.cleanup"><code class="docutils literal notranslate"><span class="pre">CacheManager.cleanup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.get"><code class="docutils literal notranslate"><span class="pre">CacheManager.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.set"><code class="docutils literal notranslate"><span class="pre">CacheManager.set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.delete"><code class="docutils literal notranslate"><span class="pre">CacheManager.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.invalidate_pattern"><code class="docutils literal notranslate"><span class="pre">CacheManager.invalidate_pattern()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheManager.flush_all"><code class="docutils literal notranslate"><span class="pre">CacheManager.flush_all()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cacheconfig-class">CacheConfig Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ddf.CacheConfig"><code class="docutils literal notranslate"><span class="pre">CacheConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.backend"><code class="docutils literal notranslate"><span class="pre">CacheConfig.backend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.ttl"><code class="docutils literal notranslate"><span class="pre">CacheConfig.ttl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.enabled"><code class="docutils literal notranslate"><span class="pre">CacheConfig.enabled</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.memcached_servers"><code class="docutils literal notranslate"><span class="pre">CacheConfig.memcached_servers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.redis_host"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_host</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.redis_port"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_port</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.redis_password"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_password</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.redis_db"><code class="docutils literal notranslate"><span class="pre">CacheConfig.redis_db</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.pickle_dir"><code class="docutils literal notranslate"><span class="pre">CacheConfig.pickle_dir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheConfig.__init__"><code class="docutils literal notranslate"><span class="pre">CacheConfig.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cachebackend-enum">CacheBackend Enum</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ddf.CacheBackend"><code class="docutils literal notranslate"><span class="pre">CacheBackend</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheBackend.NONE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.NONE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheBackend.PICKLE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.PICKLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheBackend.MEMCACHED"><code class="docutils literal notranslate"><span class="pre">CacheBackend.MEMCACHED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheBackend.MEMCACHED_PICKLE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.MEMCACHED_PICKLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheBackend.REDIS"><code class="docutils literal notranslate"><span class="pre">CacheBackend.REDIS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ddf.CacheBackend.REDIS_PICKLE"><code class="docutils literal notranslate"><span class="pre">CacheBackend.REDIS_PICKLE</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cache-backend-comparison">Cache Backend Comparison</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pickle-backend">Pickle Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#redis-backend">Redis Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memcached-backend">Memcached Backend</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-examples">Configuration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Pickle Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Redis Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Memcached Backend</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-caching">Basic Caching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pattern-invalidation">Pattern Invalidation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flush-all">Flush All</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#decorator-usage">Decorator Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-tips">Performance Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cache-not-working">Cache Not Working</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#connection-errors">Connection Errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="server.html">Server API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="server.html#ddfserver-class">DDFServer Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#ddf.DDFServer"><code class="docutils literal notranslate"><span class="pre">DDFServer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.DDFServer.__init__"><code class="docutils literal notranslate"><span class="pre">DDFServer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.DDFServer.health_check"><code class="docutils literal notranslate"><span class="pre">DDFServer.health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.DDFServer.handle_client"><code class="docutils literal notranslate"><span class="pre">DDFServer.handle_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.DDFServer.run_server"><code class="docutils literal notranslate"><span class="pre">DDFServer.run_server()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.DDFServer.setup_tray"><code class="docutils literal notranslate"><span class="pre">DDFServer.setup_tray()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.DDFServer.quit_app"><code class="docutils literal notranslate"><span class="pre">DDFServer.quit_app()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server-functions">Server Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#lock-management">Lock Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.acquire_lock"><code class="docutils literal notranslate"><span class="pre">acquire_lock()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.release_lock"><code class="docutils literal notranslate"><span class="pre">release_lock()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.is_server_running"><code class="docutils literal notranslate"><span class="pre">is_server_running()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#communication">Communication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.send_to_server"><code class="docutils literal notranslate"><span class="pre">send_to_server()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.execute_command_in_server"><code class="docutils literal notranslate"><span class="pre">execute_command_in_server()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#notification">Notification</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.notify_user"><code class="docutils literal notranslate"><span class="pre">notify_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#ddf.create_emoji_icon"><code class="docutils literal notranslate"><span class="pre">create_emoji_icon()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server-configuration">Server Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#configuration-options">Configuration Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#environment-variables">Environment Variables</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="server.html#SERVER_HOST"><code class="docutils literal notranslate"><span class="pre">SERVER_HOST</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#SERVER_PORT"><code class="docutils literal notranslate"><span class="pre">SERVER_PORT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#SERVER_ACTIVE"><code class="docutils literal notranslate"><span class="pre">SERVER_ACTIVE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="server.html#LOCK_FILE"><code class="docutils literal notranslate"><span class="pre">LOCK_FILE</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#starting-server">Starting Server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#checking-server-status">Checking Server Status</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#sending-commands">Sending Commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#server-health-check">Server Health Check</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#server-communication-protocol">Server Communication Protocol</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#request-format">Request Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#response-format">Response Format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#server-flow">Server Flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#tray-icon-integration">Tray Icon Integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#auto-forwarding">Auto-forwarding</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#systemd-integration">Systemd Integration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#linux-service">Linux Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#windows-service">Windows Service</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#docker-container">Docker Container</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#security-considerations">Security Considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.html#server-won-t-start">Server Won’t Start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#commands-not-forwarded">Commands Not Forwarded</a></li>
+<li class="toctree-l3"><a class="reference internal" href="server.html#notifications-not-working">Notifications Not Working</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backup.html">Backup API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#backupmanager-class">BackupManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#ddf.BackupManager"><code class="docutils literal notranslate"><span class="pre">BackupManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.BackupManager.get_backup_dir"><code class="docutils literal notranslate"><span class="pre">BackupManager.get_backup_dir()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.BackupManager.create_backup"><code class="docutils literal notranslate"><span class="pre">BackupManager.create_backup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.BackupManager.restore_from_backup"><code class="docutils literal notranslate"><span class="pre">BackupManager.restore_from_backup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.BackupManager.list_backups"><code class="docutils literal notranslate"><span class="pre">BackupManager.list_backups()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.BackupManager.prompt_restore_backup"><code class="docutils literal notranslate"><span class="pre">BackupManager.prompt_restore_backup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#enhancedbackupmanager-class">EnhancedBackupManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#ddf.EnhancedBackupManager"><code class="docutils literal notranslate"><span class="pre">EnhancedBackupManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.EnhancedBackupManager.create_backup_with_context"><code class="docutils literal notranslate"><span class="pre">EnhancedBackupManager.create_backup_with_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="backup.html#ddf.EnhancedBackupManager.should_create_backup"><code class="docutils literal notranslate"><span class="pre">EnhancedBackupManager.should_create_backup()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#basic-backup">Basic Backup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-with-context">Backup with Context</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#list-backups">List Backups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#restore-backup">Restore Backup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#interactive-restore">Interactive Restore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#check-if-backup-needed">Check if Backup Needed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-directory">Backup Directory</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#integration-examples">Integration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#with-error-handling">With Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#automated-cleanup">Automated Cleanup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-verification">Backup Verification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-history">Backup History</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#constants">Constants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#id1">Backup Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#backup-file-pattern">Backup File Pattern</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="backup.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#common-exceptions">Common Exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="backup.html#handling-failed-backups">Handling Failed Backups</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="editor.html">Editor API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#editormanager-class">EditorManager Class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#ddf.EditorManager"><code class="docutils literal notranslate"><span class="pre">EditorManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="editor.html#ddf.EditorManager.BLOCKING_EDITORS"><code class="docutils literal notranslate"><span class="pre">EditorManager.BLOCKING_EDITORS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="editor.html#ddf.EditorManager.NON_BLOCKING_EDITORS"><code class="docutils literal notranslate"><span class="pre">EditorManager.NON_BLOCKING_EDITORS</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="editor.html#ddf.EditorManager.SPECIAL_HANDLING"><code class="docutils literal notranslate"><span class="pre">EditorManager.SPECIAL_HANDLING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="editor.html#ddf.EditorManager.edit_file_with_monitoring"><code class="docutils literal notranslate"><span class="pre">EditorManager.edit_file_with_monitoring()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="editor.html#ddf.EditorManager.get_editor_type"><code class="docutils literal notranslate"><span class="pre">EditorManager.get_editor_type()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="editor.html#ddf.EditorManager.cleanup_temp_files"><code class="docutils literal notranslate"><span class="pre">EditorManager.cleanup_temp_files()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#editor-types">Editor Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#blocking-editors">Blocking Editors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#non-blocking-editors">Non-Blocking Editors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#special-handling">Special Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#usage-examples">Usage Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#basic-file-editing">Basic File Editing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#with-detached-mode">With Detached Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#custom-callback">Custom Callback</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#multiple-files">Multiple Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#file-hash-utilities">File Hash Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#get-file-hash">Get File Hash</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#detect-changes">Detect Changes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#cleanup-operations">Cleanup Operations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#cleanup-temp-files">Cleanup Temp Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#scheduled-cleanup">Scheduled Cleanup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#detached-terminal">Detached Terminal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#sublime-text-wait-mode">Sublime Text Wait Mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#file-monitoring">File Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#editor-priority">Editor Priority</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#platform-specific-config">Platform-Specific Config</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#editor-not-found">Editor Not Found</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#timeout-handling">Timeout Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#permission-errors">Permission Errors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="editor.html#integration-examples">Integration Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#with-ddf-edit-operations">With DDF Edit Operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="editor.html#custom-editor-wrapper">Custom Editor Wrapper</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to DDF</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#ways-to-contribute">Ways to Contribute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#development-workflow">Development Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#code-standards">Code Standards</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#testing">Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#commit-messages">Commit Messages</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#pull-request-process">Pull Request Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#pull-request-template">Pull Request Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#reporting-bugs">Reporting Bugs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#bug-report-template">Bug Report Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#feature-requests">Feature Requests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#feature-request-template">Feature Request Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#development-guidelines">Development Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#error-handling">Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#performance">Performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#security">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#adding-new-features">Adding New Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#cache-backend-example">Cache Backend Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#editor-support-example">Editor Support Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#community">Community</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#getting-help">Getting Help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#license">License</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#mit-license">MIT License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#third-party-licenses">Third-Party Licenses</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../license.html#core-dependencies">Core Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../license.html#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../license.html#development-dependencies">Development Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#about-mit-license">About MIT License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#for-commercial-use">For Commercial Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#contributions">Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#attribution">Attribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../license.html#questions">Questions</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">DDF</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Cache API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/cache.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cache-api">
+<h1>Cache API<a class="headerlink" href="#cache-api" title="Link to this heading"></a></h1>
+<p>This section documents the caching system.</p>
+<section id="cachemanager-class">
+<h2>CacheManager Class<a class="headerlink" href="#cachemanager-class" title="Link to this heading"></a></h2>
+<p>Unified cache manager supporting multiple backends.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ddf.CacheManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ddf.</span></span><span class="sig-name descname"><span class="pre">CacheManager</span></span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Unified cache manager supporting multiple backends.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.__new__">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__new__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.__new__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.__new__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<section id="client-management">
+<h3>Client Management<a class="headerlink" href="#client-management" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager._get_client">
+<span class="sig-name descname"><span class="pre">_get_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager._get_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager._get_client" title="Link to this definition"></a></dt>
+<dd><p>Get or create cache client with proper error handling.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.cleanup"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Cleanup cache connections on exit.</p>
+</dd></dl>
+
+</section>
+<section id="serialization">
+<h3>Serialization<a class="headerlink" href="#serialization" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager._serialize">
+<span class="sig-name descname"><span class="pre">_serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager._serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager._serialize" title="Link to this definition"></a></dt>
+<dd><p>Serialize data based on backend.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager._deserialize">
+<span class="sig-name descname"><span class="pre">_deserialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager._deserialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager._deserialize" title="Link to this definition"></a></dt>
+<dd><p>Deserialize data based on backend.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager._get_pickle_path">
+<span class="sig-name descname"><span class="pre">_get_pickle_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager._get_pickle_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager._get_pickle_path" title="Link to this definition"></a></dt>
+<dd><p>Get pickle file path.</p>
+</dd></dl>
+
+</section>
+<section id="cache-operations">
+<h3>Cache Operations<a class="headerlink" href="#cache-operations" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get value from cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.set"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">invalidate_pattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.invalidate_pattern"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">flush_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.flush_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Flush all cache (useful for memcached).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="key-registry">
+<h3>Key Registry<a class="headerlink" href="#key-registry" title="Link to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager._register_cache_key">
+<span class="sig-name descname"><span class="pre">_register_cache_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager._register_cache_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager._register_cache_key" title="Link to this definition"></a></dt>
+<dd><p>Register a cache key for pattern-based invalidation (memcached only).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.cleanup">
+<span class="sig-name descname"><span class="pre">cleanup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.cleanup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.cleanup" title="Link to this definition"></a></dt>
+<dd><p>Cleanup cache connections on exit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.get" title="Link to this definition"></a></dt>
+<dd><p>Get value from cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.set" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.delete" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.invalidate_pattern">
+<span class="sig-name descname"><span class="pre">invalidate_pattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.invalidate_pattern"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.invalidate_pattern" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheManager.flush_all">
+<span class="sig-name descname"><span class="pre">flush_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheManager.flush_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheManager.flush_all" title="Link to this definition"></a></dt>
+<dd><p>Flush all cache (useful for memcached).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+<section id="cacheconfig-class">
+<h2>CacheConfig Class<a class="headerlink" href="#cacheconfig-class" title="Link to this heading"></a></h2>
+<p>Configuration for cache backends.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ddf.CacheConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ddf.</span></span><span class="sig-name descname"><span class="pre">CacheConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CacheBackend.REDIS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memcached_servers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6379</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pickle_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C:\\\\TEMP\\\\docker_cache'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Cache configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backend</strong> (<a class="reference internal" href="#ddf.CacheBackend" title="ddf.ddf.CacheBackend"><em>CacheBackend</em></a>) – Cache backend type</p></li>
+<li><p><strong>ttl</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Time to live in seconds</p></li>
+<li><p><strong>enabled</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Enable or disable caching</p></li>
+<li><p><strong>memcached_servers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a>) – List of Memcached servers</p></li>
+<li><p><strong>redis_host</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Redis server host</p></li>
+<li><p><strong>redis_port</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Redis server port</p></li>
+<li><p><strong>redis_password</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Redis password</p></li>
+<li><p><strong>redis_db</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Redis database number</p></li>
+<li><p><strong>pickle_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Directory for pickle cache files</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.backend">
+<span class="sig-name descname"><span class="pre">backend</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#ddf.CacheBackend" title="ddf.ddf.CacheBackend"><code class="xref py py-class docutils literal notranslate"><span class="pre">CacheBackend</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'redis'</span></em><a class="headerlink" href="#ddf.CacheConfig.backend" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.ttl">
+<span class="sig-name descname"><span class="pre">ttl</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ddf.CacheConfig.ttl" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.enabled">
+<span class="sig-name descname"><span class="pre">enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#ddf.CacheConfig.enabled" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.memcached_servers">
+<span class="sig-name descname"><span class="pre">memcached_servers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ddf.CacheConfig.memcached_servers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.redis_host">
+<span class="sig-name descname"><span class="pre">redis_host</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'localhost'</span></em><a class="headerlink" href="#ddf.CacheConfig.redis_host" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.redis_port">
+<span class="sig-name descname"><span class="pre">redis_port</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6379</span></em><a class="headerlink" href="#ddf.CacheConfig.redis_port" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.redis_password">
+<span class="sig-name descname"><span class="pre">redis_password</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#ddf.CacheConfig.redis_password" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.redis_db">
+<span class="sig-name descname"><span class="pre">redis_db</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#ddf.CacheConfig.redis_db" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheConfig.pickle_dir">
+<span class="sig-name descname"><span class="pre">pickle_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'C:\\TEMP\\docker_cache'</span></em><a class="headerlink" href="#ddf.CacheConfig.pickle_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ddf.CacheConfig.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CacheBackend.REDIS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ttl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enabled</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memcached_servers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6379</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">redis_db</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pickle_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C:\\\\TEMP\\\\docker_cache'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ddf.CacheConfig.__init__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="cachebackend-enum">
+<h2>CacheBackend Enum<a class="headerlink" href="#cachebackend-enum" title="Link to this heading"></a></h2>
+<p>Available cache backend types.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ddf.CacheBackend">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ddf.</span></span><span class="sig-name descname"><span class="pre">CacheBackend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/ddf/ddf.html#CacheBackend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ddf.CacheBackend" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">NONE</span></span></dt>
+<dd><p>No caching</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">PICKLE</span></span></dt>
+<dd><p>File-based pickle cache</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">MEMCACHED</span></span></dt>
+<dd><p>Memcached with JSON serialization</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">MEMCACHED_PICKLE</span></span></dt>
+<dd><p>Memcached with pickle serialization</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">REDIS</span></span></dt>
+<dd><p>Redis with JSON serialization</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">REDIS_PICKLE</span></span></dt>
+<dd><p>Redis with pickle serialization</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheBackend.NONE">
+<span class="sig-name descname"><span class="pre">NONE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'none'</span></em><a class="headerlink" href="#ddf.CacheBackend.NONE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheBackend.PICKLE">
+<span class="sig-name descname"><span class="pre">PICKLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'pickle'</span></em><a class="headerlink" href="#ddf.CacheBackend.PICKLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheBackend.MEMCACHED">
+<span class="sig-name descname"><span class="pre">MEMCACHED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'memcached'</span></em><a class="headerlink" href="#ddf.CacheBackend.MEMCACHED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheBackend.MEMCACHED_PICKLE">
+<span class="sig-name descname"><span class="pre">MEMCACHED_PICKLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'memcached_pickle'</span></em><a class="headerlink" href="#ddf.CacheBackend.MEMCACHED_PICKLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheBackend.REDIS">
+<span class="sig-name descname"><span class="pre">REDIS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'redis'</span></em><a class="headerlink" href="#ddf.CacheBackend.REDIS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ddf.CacheBackend.REDIS_PICKLE">
+<span class="sig-name descname"><span class="pre">REDIS_PICKLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'redis_pickle'</span></em><a class="headerlink" href="#ddf.CacheBackend.REDIS_PICKLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="cache-backend-comparison">
+<h2>Cache Backend Comparison<a class="headerlink" href="#cache-backend-comparison" title="Link to this heading"></a></h2>
+<section id="pickle-backend">
+<h3>Pickle Backend<a class="headerlink" href="#pickle-backend" title="Link to this heading"></a></h3>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p>No external dependencies</p></li>
+<li><p>Works offline</p></li>
+<li><p>Simple setup</p></li>
+<li><p>Cross-platform</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p>Not suitable for multi-process scenarios</p></li>
+<li><p>Slower than in-memory caches</p></li>
+<li><p>No automatic expiration</p></li>
+</ul>
+<p><strong>Use When:</strong></p>
+<ul class="simple">
+<li><p>Development environment</p></li>
+<li><p>Single-user scenarios</p></li>
+<li><p>No Redis/Memcached available</p></li>
+</ul>
+</section>
+<section id="redis-backend">
+<h3>Redis Backend<a class="headerlink" href="#redis-backend" title="Link to this heading"></a></h3>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p>Fast in-memory storage</p></li>
+<li><p>Persistent data (optional)</p></li>
+<li><p>Supports expiration (TTL)</p></li>
+<li><p>Multi-process safe</p></li>
+<li><p>Pattern-based invalidation</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p>Requires Redis server</p></li>
+<li><p>Network overhead</p></li>
+<li><p>Additional dependency</p></li>
+</ul>
+<p><strong>Use When:</strong></p>
+<ul class="simple">
+<li><p>Production environment</p></li>
+<li><p>Multi-user scenarios</p></li>
+<li><p>Need persistence</p></li>
+<li><p>Need advanced features</p></li>
+</ul>
+</section>
+<section id="memcached-backend">
+<h3>Memcached Backend<a class="headerlink" href="#memcached-backend" title="Link to this heading"></a></h3>
+<p><strong>Advantages:</strong></p>
+<ul class="simple">
+<li><p>Very fast</p></li>
+<li><p>Simple protocol</p></li>
+<li><p>Low memory overhead</p></li>
+<li><p>Multi-process safe</p></li>
+</ul>
+<p><strong>Disadvantages:</strong></p>
+<ul class="simple">
+<li><p>Requires Memcached server</p></li>
+<li><p>No persistence</p></li>
+<li><p>No pattern-based operations</p></li>
+<li><p>Additional dependency</p></li>
+</ul>
+<p><strong>Use When:</strong></p>
+<ul class="simple">
+<li><p>Need highest performance</p></li>
+<li><p>Don’t need persistence</p></li>
+<li><p>Simple caching needs</p></li>
+</ul>
+</section>
+</section>
+<section id="configuration-examples">
+<h2>Configuration Examples<a class="headerlink" href="#configuration-examples" title="Link to this heading"></a></h2>
+<section id="id1">
+<h3>Pickle Backend<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">pickle</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="na">pickle_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">/tmp/ddf_cache</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CacheConfig</span><span class="p">,</span> <span class="n">CacheBackend</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">CacheConfig</span><span class="p">(</span>
+    <span class="n">backend</span><span class="o">=</span><span class="n">CacheBackend</span><span class="o">.</span><span class="n">PICKLE</span><span class="p">,</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">pickle_dir</span><span class="o">=</span><span class="s2">&quot;/tmp/ddf_cache&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h3>Redis Backend<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">redis</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+<span class="na">redis_host</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost</span>
+<span class="na">redis_port</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">6379</span>
+<span class="na">redis_password</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">secret</span>
+<span class="na">redis_db</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">0</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CacheConfig</span><span class="p">,</span> <span class="n">CacheBackend</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">CacheConfig</span><span class="p">(</span>
+    <span class="n">backend</span><span class="o">=</span><span class="n">CacheBackend</span><span class="o">.</span><span class="n">REDIS</span><span class="p">,</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+    <span class="n">redis_host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+    <span class="n">redis_port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span>
+    <span class="n">redis_password</span><span class="o">=</span><span class="s2">&quot;secret&quot;</span><span class="p">,</span>
+    <span class="n">redis_db</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>Memcached Backend<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="k">[cache]</span>
+<span class="na">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">memcached</span>
+<span class="na">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+<span class="na">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
+<span class="na">memcached_servers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">localhost:11211, 192.168.1.100:11211</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CacheConfig</span><span class="p">,</span> <span class="n">CacheBackend</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">CacheConfig</span><span class="p">(</span>
+    <span class="n">backend</span><span class="o">=</span><span class="n">CacheBackend</span><span class="o">.</span><span class="n">MEMCACHED</span><span class="p">,</span>
+    <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>
+    <span class="n">memcached_servers</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s1">&#39;localhost&#39;</span><span class="p">,</span> <span class="mi">11211</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;192.168.1.100&#39;</span><span class="p">,</span> <span class="mi">11211</span><span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="usage-examples">
+<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h2>
+<section id="basic-caching">
+<h3>Basic Caching<a class="headerlink" href="#basic-caching" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Set value</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">)</span>
+
+<span class="c1"># Get value</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">)</span>
+
+<span class="c1"># Delete value</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s1">&#39;key&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="pattern-invalidation">
+<h3>Pattern Invalidation<a class="headerlink" href="#pattern-invalidation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Invalidate all keys starting with prefix</span>
+<span class="n">count</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">invalidate_pattern</span><span class="p">(</span><span class="s1">&#39;service:&#39;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalidated </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> keys&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="flush-all">
+<h3>Flush All<a class="headerlink" href="#flush-all" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="c1"># Flush all cache</span>
+<span class="n">CACHE</span><span class="o">.</span><span class="n">flush_all</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="decorator-usage">
+<h3>Decorator Usage<a class="headerlink" href="#decorator-usage" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">cache_with_invalidation</span>
+
+<span class="nd">@cache_with_invalidation</span><span class="p">(</span><span class="n">ttl</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span> <span class="n">key_prefix</span><span class="o">=</span><span class="s1">&#39;myfunction&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">my_expensive_function</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">):</span>
+    <span class="c1"># Expensive computation</span>
+    <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-tips">
+<h2>Performance Tips<a class="headerlink" href="#performance-tips" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Use TTL wisely</strong>: Set appropriate expiration times</p></li>
+<li><p><strong>Pattern invalidation</strong>: Use prefixes for related keys</p></li>
+<li><p><strong>Serialization</strong>: Use pickle for complex objects, JSON for simple ones</p></li>
+<li><p><strong>Connection pooling</strong>: Redis/Memcached handle this automatically</p></li>
+<li><p><strong>Monitoring</strong>: Check cache hit rates regularly</p></li>
+</ol>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="cache-not-working">
+<h3>Cache Not Working<a class="headerlink" href="#cache-not-working" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check cache is enabled</span>
+<span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE_CONFIG</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cache enabled: </span><span class="si">{</span><span class="n">CACHE_CONFIG</span><span class="o">.</span><span class="n">enabled</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cache backend: </span><span class="si">{</span><span class="n">CACHE_CONFIG</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="connection-errors">
+<h3>Connection Errors<a class="headerlink" href="#connection-errors" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Test cache connectivity</span>
+<span class="kn">from</span> <span class="nn">ddf</span> <span class="kn">import</span> <span class="n">CACHE</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">CACHE</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">CACHE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cache working: </span><span class="si">{</span><span class="n">value</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;value&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cache error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more information, see <a class="reference internal" href="../caching.html"><span class="doc">Caching System</span></a>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.html" class="btn btn-neutral float-left" title="Core API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="server.html" class="btn btn-neutral float-right" title="Server API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Hadi Cahyadi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

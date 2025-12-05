@@ -1703,8 +1703,8 @@ class DDF:
     
     @classmethod
     def read_entrypoint2(cls, service_name, read=True, line_numbers=True):
-        """
-        Read the entrypoint script for a given service.
+        """Read the entrypoint script for a given service.
+
         Resolves the entrypoint path by:
           1. Parsing the Dockerfile for ENTRYPOINT
           2. Finding the corresponding COPY instruction
@@ -2543,18 +2543,21 @@ class DDF:
     
     @classmethod
     def copy_dockerfile_config(cls, from_svc_name, to_svc_name):
-        """
-        Copy Dockerfile from `from_svc_name` into the build context of `to_svc_name`
-        and update docker-compose file for `to_svc_name` to point to the copied Dockerfile.
+        """Copy Dockerfile from ``from_svc_name`` into the build context of ``to_svc_name``
+        and update docker-compose file for ``to_svc_name`` to point to the copied Dockerfile.
 
         Behavior:
+
         - If target build context directory doesn't exist it will be created.
         - If a Dockerfile already exists at target, a unique name will be chosen:
-          Dockerfile, Dockerfile-<svc>, Dockerfile-<svc>-1, ...
-        - After successful copy, docker-compose.yml will be updated:
-          services[to_svc_name].build.dockerfile = <relative-or-basename>
-        Returns path to created file on success, None on failure.
+          ``Dockerfile``, ``Dockerfile-<svc>``, ``Dockerfile-<svc>-1``, ...
+        - After successful copy, ``docker-compose.yml`` will be updated:
+          ``services[to_svc_name].build.dockerfile = <relative-or-basename>``
+
+        Returns:
+            str or None: Path to created file on success, None on failure.
         """
+
         # resolve source Dockerfile
         try:
             src_path = cls.get_dockerfile(from_svc_name)
@@ -3090,7 +3093,8 @@ class EditorManager:
                             editor, file_path, callback_on_save, original_hash
                         )
                     else:
-                        return cls._edit_with_file_monitoring(
+                        # return cls._edit_with_file_monitoring(
+                        return cls.edit_file_with_monitoring(
                             editor, file_path, callback_on_save, timeout, original_hash
                         )
                         
@@ -3104,6 +3108,10 @@ class EditorManager:
         console.print("❌ [red]No suitable editor found.[/]")
         return False
     
+    @classmethod
+    def _edit_with_file_monitoring(cls, *args, **kwargs):
+        return cls.edit_file_with_monitoring(*args, **kwargs)
+
     @classmethod
     def _edit_with_detached_terminal(cls, editor, file_path, callback, original_hash):
         """Open editor in new terminal window and monitor file changes."""
