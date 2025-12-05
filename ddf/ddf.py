@@ -3804,7 +3804,7 @@ class Usage(EnhancedDDF):
         parser.add_argument('-hn', '--hostname', action='store_true', help="Show hostname for the service if available")
         parser.add_argument('-n', '--new', action='store_true', help="Create a new service section in the YAML file")
         parser.add_argument('-F', '--filter', action='store', help="Filter services by name or pattern", nargs='*', default=[])
-        parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {cls.get_version()}', help="Show the version of ddf module")
+        parser.add_argument('-v', '--version', action='version', version=f'%(prog)s version: {cls.get_version()}', help="Show the version of ddf module")
         parser.add_argument('-ef', '--edit-file', metavar='FILENAME', help="Edit a specific file in the Dockerfile COPY command", type=str)
         parser.add_argument('-rf', '--read-file', metavar='FILENAME', help="Read and display a specific file in the Dockerfile COPY command", type=str)
         parser.add_argument('--theme', default='fruity', help="Set the theme for syntax highlighting (default: fruity)")
